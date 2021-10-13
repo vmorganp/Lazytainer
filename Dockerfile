@@ -1,15 +1,14 @@
-# from alpine
-# RUN apk update && apk add --no-cache docker-cli
-# COPY ./get_stats.sh /get_stats.sh
-
-# CMD [ "/bin/sh", "/get_stats.sh" ] 
-# # ENTRYPOINT ["tail", "-f", "/dev/null"]
-
-#### old sad sh version above here
 from golang:alpine3.14
-
 WORKDIR /go/src/app
 COPY ./sandman.go .
-RUN go build sandman.go 
+RUN go build sandman.go
+
+FROM alpine:latest
+RUN apk --no-cache add docker-cli
+WORKDIR /root/
+COPY --from=0 /go/src/app/sandman ./
+ENV TIMEOUT=30
+ENV LABEL=sandman
+
 
 CMD ["./sandman"]
