@@ -1,11 +1,11 @@
 version: "3"
 services:
-  sandman:
-    container_name: sandman
+  lazytainer:
+    container_name: lazytainer
     build: .
     environment:
       - PORT=81 # TODO make this work with more than one port
-      - LABEL=sandman # sandman checks
+      - LABEL=lazytainer # value of com.lazytainer.marker for other containers that lazytainer checks
       - TIMEOUT=30 # number of seconds to let container idle
     ports:
       - 81:81
@@ -16,10 +16,10 @@ services:
     container_name: whoami2
     image: containous/whoami
     command: --port 81
-    network_mode: service:sandman
+    network_mode: service:lazytainer
     depends_on: 
-      - sandman
+      - lazytainer
     # ports:
     # - 80:80
     labels:
-      - "com.sandman.marker=sandman"
+      - "com.lazytainer.marker=lazytainer"

@@ -1,7 +1,7 @@
-# Sandman
+# Lazytainer
 Putting your containers to sleep  
 
-*man me a sand*
+*I don't really wanna do the work today*
 
 ---
 
@@ -13,15 +13,14 @@ if it looks like you're trying to access a stopped container, it starts
 
 ### Want to test it?
 ```
-$ git clone https://github.com/vmorganp/sandman
-$ cd sandman
-$ docker-compose up -d --build
+$ git clone https://github.com/vmorganp/Lazytainer
+$ cd Lazytainer
+$ docker-compose up 
 ```
 
 ## TODO
 - support multiple ports
 - test on common services
-- better time adjustment
 - docker security probably? this really shouldn't be getting exposed except to forward traffic so idk probably firewall all non listed ports?
 - improve logging
 - inevitable bugfixes
