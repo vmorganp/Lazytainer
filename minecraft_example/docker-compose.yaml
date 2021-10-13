@@ -1,0 +1,26 @@
+version: "3"
+services:
+  lazytainer:
+    container_name: lazytainer
+    image: lazytainer # build this first by cding into cloned directory and running `docker build -t lazytainer .`
+    environment:
+      - PORT=25565 
+      - LABEL=lazytainer
+      - TIMEOUT=90 
+    ports:
+      - 25565:25565
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  mc:
+    image: itzg/minecraft-server
+    environment:
+      EULA: "TRUE"
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+    labels:
+      - "com.lazytainer.marker=lazytainer"
+    depends_on: 
+      - lazytainer
+    volumes:
+      - /home/temp/mc:/data

@@ -75,10 +75,13 @@ func main() {
 				if inactive_seconds > inactive_timeout {
 					stop_containers()
 				}
+			} else {
+				inactive_seconds = 0
 			}
 		} else {
 			// if more than 10 rx in last 10 seconds, start the container
 			if rx_history[0]+min_packet_threshhold < rx_history[len(rx_history)-1] {
+				inactive_seconds = 0
 				start_containers()
 			}
 		}
