@@ -5,11 +5,15 @@ services:
     build: .
     # image: sandman
     environment:
-    - PORT=81
+      - PORT=81
+      - LABEL=sandman
     ports:
-    - 81:81
+      - 81:81
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
     # command: tail -F asdf
-    command: /bin/sh /get_stats.sh
+    # command: /bin/sh /get_stats.sh
 
   whoami2:
     container_name: whoami2
@@ -17,6 +21,8 @@ services:
     command: --port 81
     network_mode: service:whoami
     depends_on: 
-    - whoami
+      - whoami
     # ports:
     # - 80:80
+    labels:
+      - "com.sandman.marker=sandman"
