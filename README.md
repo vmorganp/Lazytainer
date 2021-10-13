@@ -13,6 +13,8 @@ if it looks like you're trying to access a stopped container, it starts
 
 ### Want to test it?
 ```
+$ git clone https://github.com/vmorganp/sandman
+$ cd sandman
 $ docker-compose up -d --build
 ```
 
