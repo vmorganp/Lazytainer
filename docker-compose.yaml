@@ -1,0 +1,22 @@
+version: "3"
+services:
+  whoami:
+    container_name: whoami
+    build: .
+    # image: sandman
+    environment:
+    - PORT=81
+    ports:
+    - 81:81
+    # command: tail -F asdf
+    command: /bin/sh /get_stats.sh
+
+  whoami2:
+    container_name: whoami2
+    image: containous/whoami
+    command: --port 81
+    network_mode: service:whoami
+    depends_on: 
+    - whoami
+    # ports:
+    # - 80:80
