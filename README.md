@@ -22,7 +22,7 @@ $ docker-compose up
 ```
   lazytainer:
     container_name: lazytainer
-    build: .
+    image: ghcr.io/vmorganp/lazytainer:master
     environment:
       - PORT=81,82 # comma separated list of ports...or just the one 
       - LABEL=lazytainer # value of com.lazytainer.marker for other containers that lazytainer checks

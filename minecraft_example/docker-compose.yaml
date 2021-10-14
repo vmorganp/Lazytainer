@@ -2,7 +2,7 @@ version: "3"
 services:
   lazytainer:
     container_name: lazytainer
-    image: lazytainer # build this first by cding into cloned directory and running `docker build -t lazytainer .`
+    image: ghcr.io/vmorganp/lazytainer:master
     environment:
       - PORT=25565 
       - LABEL=lazytainer
