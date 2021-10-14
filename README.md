@@ -25,7 +25,7 @@ $ docker-compose up
     image: ghcr.io/vmorganp/lazytainer:master
     environment:
       - PORT=81,82 # comma separated list of ports...or just the one 
-      - LABEL=lazytainer # value of com.lazytainer.marker for other containers that lazytainer checks
+      - LABEL=lazytainer # value of lazytainer.marker for other containers that lazytainer checks
       # - TIMEOUT=30 # OPTIONAL number of seconds to let container idle
       # - RXHISTLENGTH=10 # OPTIONAL number of seconds to keep rx history, uptime is calculated as first item and last item from this and must have a gap of at least $MINPACKETTHRESH
       # - MINPACKETTHRESH=10 # OPTIONAL number of packets that must be recieved to keepalive/start container 
@@ -42,7 +42,7 @@ $ docker-compose up
     depends_on: 
       - lazytainer # wait for lazytainer to start before starting
     labels:
-      - "com.lazytainer.marker=lazytainer" # required label to make it work
+      - "lazytainer.marker=lazytainer" # required label to make it work
 ```
 
 ## TODO

@@ -19,7 +19,7 @@ services:
     stdin_open: true
     restart: unless-stopped
     labels:
-      - "com.lazytainer.marker=lazytainer"
+      - "lazytainer.marker=lazytainer"
     depends_on: 
       - lazytainer
     volumes:

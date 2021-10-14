@@ -126,7 +126,7 @@ func newContainer(id string, state string) *container {
 
 func get_containers() []container {
     containers := []container{}
-    out, err := exec.Command("/bin/sh", "-c", "docker ps -a --no-trunc --filter label=\"com.lazytainer.marker=$LABEL\" --format \"{{.ID}} {{.State}}\"").Output() // todo make this handle multiple ports?
+    out, err := exec.Command("/bin/sh", "-c", "docker ps -a --no-trunc --filter label=\"lazytainer.marker=$LABEL\" --format \"{{.ID}} {{.State}}\"").Output() // todo make this handle multiple ports?
     check(err)
     fmt.Println(string(out))
     if strings.TrimSpace(string(out)) == "" {
