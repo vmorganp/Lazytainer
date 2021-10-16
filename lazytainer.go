@@ -68,7 +68,7 @@ func setVarsFromEnv() {
 	}
 	// ports to check for active connections
 	portsArray := strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
-	ports := ""
+	ports = ""
 	for i, port := range portsArray {
 		if i == 0 {
 			ports += "'"
