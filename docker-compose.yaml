@@ -9,6 +9,7 @@ services:
       # - TIMEOUT=30 # OPTIONAL number of seconds to let container idle
       # - RXHISTLENGTH=10 # OPTIONAL number of seconds to keep rx history, uptime is calculated as first item and last item from this and must have a gap of at least $MINPACKETTHRESH
       # - MINPACKETTHRESH=10 # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      # - POLLRATE=1 # OPTIONAL number of packets that must be recieved to keepalive/start container 
     ports:
       - 81:81
       - 82:82
