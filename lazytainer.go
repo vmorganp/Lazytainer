@@ -99,7 +99,7 @@ func setVarsFromEnv() {
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
 			fmt.Println("using default because env variable RXHISTLENGTH not set ")
-			inactiveTimeout = 10
+			rxHistoryLength = 10
 		} else {
 			panic(err)
 		}
@@ -110,7 +110,7 @@ func setVarsFromEnv() {
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
 			fmt.Println("using default because env variable MINPACKETTHRESH not set ")
-			inactiveTimeout = 10
+			minPacketThreshold = 10
 		} else {
 			panic(err)
 		}
@@ -121,7 +121,7 @@ func setVarsFromEnv() {
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
 			fmt.Println("using default because env variable POLLRATE not set ")
-			inactiveTimeout = 1
+			pollRate = 1
 		} else {
 			panic(err)
 		}
