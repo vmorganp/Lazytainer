@@ -4,12 +4,12 @@ services:
     container_name: lazytainer
     image: ghcr.io/vmorganp/lazytainer:master
     environment:
-      - PORT=81,82 # comma separated list of ports...or just the one 
-      - LABEL=lazytainer # value of lazytainer.marker for other containers that lazytainer checks
-      # - TIMEOUT=30 # OPTIONAL number of seconds to let container idle
-      # - RXHISTLENGTH=10 # OPTIONAL number of seconds to keep rx history, uptime is calculated as first item and last item from this and must have a gap of at least $MINPACKETTHRESH
+      - PORT=81,82           # comma separated list of ports...or just the one 
+      - LABEL=lazytainer     # value of lazytainer.marker for other containers that lazytainer checks
+      # - TIMEOUT=30         # OPTIONAL number of seconds to let container idle
       # - MINPACKETTHRESH=10 # OPTIONAL number of packets that must be recieved to keepalive/start container 
-      # - POLLRATE=1 # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      # - POLLRATE=5         # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      # - VERBOSE=true
     ports:
       - 81:81
       - 82:82

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"strconv"
@@ -20,6 +21,7 @@ var inactiveTimeout int
 var rxHistoryLength int
 var minPacketThreshold int
 var pollRate int
+var verbose bool
 
 func main() {
 	setVarsFromEnv()
@@ -34,8 +36,8 @@ func main() {
 			// if no clients are active on ports and threshhold packets haven't been recieved in HISTLENGTH*POLLRATE secs
 			if activeClients == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
 				// count up if we have no active clients
-				inactiveSeconds++
-				fmt.Println(inactiveSeconds, "seconds without an active client")
+				inactiveSeconds = inactiveSeconds + pollRate
+				fmt.Println(inactiveSeconds,"/",inactiveTimeout, "seconds without an active client")
 				if inactiveSeconds >= inactiveTimeout {
 					stopContainers()
 				}
@@ -49,10 +51,10 @@ func main() {
 				startContainers()
 			}
 		}
-		for i := 0; i < pollRate; i++ {
-			time.Sleep(time.Second)
+		time.Sleep(time.Duration(pollRate) * time.Second)
+		if verbose {
+			fmt.Println("//////////////////////////////////////////////////////////////////////////////////")
 		}
-		// fmt.Println("//////////////////////////////////////////////////////////////////////////////////")
 	}
 }
 
@@ -81,6 +83,12 @@ func setVarsFromEnv() {
 		}
 	}
 
+	// logging level, should probably use a lib for this
+	verboseString := os.Getenv("VERBOSE")
+	if strings.ToLower(verboseString) == "true" {
+		verbose = true
+	}
+
 	var err error
 
 	// how long a container is allowed to have no traffic before being stopped
@@ -88,18 +96,7 @@ func setVarsFromEnv() {
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
 			fmt.Println("using default because env variable TIMEOUT not set ")
-			inactiveTimeout = 30
-		} else {
-			panic(err)
-		}
-	}
-
-	// how many polls to keep around
-	rxHistoryLength, err = strconv.Atoi(os.Getenv("RXHISTLENGTH"))
-	if err != nil {
-		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			fmt.Println("using default because env variable RXHISTLENGTH not set ")
-			rxHistoryLength = 10
+			inactiveTimeout = 60
 		} else {
 			panic(err)
 		}
@@ -121,12 +118,13 @@ func setVarsFromEnv() {
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
 			fmt.Println("using default because env variable POLLRATE not set ")
-			pollRate = 1
+			pollRate = 5
 		} else {
 			panic(err)
 		}
 	}
 
+	rxHistoryLength = int(math.Ceil(float64(inactiveTimeout / pollRate)))
 }
 
 func getRxPackets() int {
@@ -135,7 +133,9 @@ func getRxPackets() int {
 	check(err)
 	rxPackets, err := strconv.Atoi(strings.TrimSpace(string(rx)))
 	check(err)
-	// fmt.Println(rxPackets)
+	if verbose {
+		fmt.Println(rxPackets, "rx packets")
+	}
 	return rxPackets
 }
 
@@ -146,7 +146,10 @@ func getActiveClients() int {
 	check(err)
 	activeClients, err := strconv.Atoi(strings.TrimSpace(string(out)))
 	check(err)
-	// fmt.Println(activeClients, "active clients")
+	if verbose {
+		fmt.Println(activeClients, "active clients")
+
+	}
 	return activeClients
 }
 
