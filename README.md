@@ -1,4 +1,4 @@
-# Lazytainer
+# Lazytainer - Lazy Load Containers
 Putting your containers to sleep  
 
 *I don't really wanna do the work today*
@@ -27,7 +27,7 @@ $ docker-compose up
       - LABEL=lazytainer     # value of lazytainer.marker for other containers that lazytainer checks
       # - TIMEOUT=30           # OPTIONAL number of seconds to let container idle
       # - MINPACKETTHRESH=10   # OPTIONAL number of packets that must be recieved to keepalive/start container 
-      # - POLLRATE=1           # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      # - POLLRATE=1           # OPTIONAL number of seconds to sleep between polls
       # - VERBOSE=true         # probably set this to false unless you're debugging or doing the initial demo
     ports:
       - 81:81

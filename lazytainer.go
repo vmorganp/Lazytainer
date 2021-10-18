@@ -36,7 +36,7 @@ func main() {
 			if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
 				// count up if we have no active clients
 				inactiveSeconds = inactiveSeconds + pollRate
-				fmt.Println(inactiveSeconds, "/", inactiveTimeout, "seconds without an active client")
+				fmt.Println(inactiveSeconds, "/", inactiveTimeout, "seconds without an active client or sufficient traffic on running container")
 				if inactiveSeconds >= inactiveTimeout {
 					stopContainers()
 				}
