@@ -211,13 +211,3 @@ func check(err error) {
 		fmt.Println(err)
 	}
 }
-
-func checkEnvFetchRecoverable(err error) bool {
-	if err != nil {
-		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			return true
-		}
-		panic(err)
-	}
-	return false
-}
