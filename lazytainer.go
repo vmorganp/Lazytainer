@@ -18,7 +18,6 @@ import (
 var label string
 var ports string
 var inactiveTimeout int
-var rxHistoryLength int
 var minPacketThreshold int
 var pollRate int
 var verbose bool
@@ -26,18 +25,18 @@ var verbose bool
 func main() {
 	setVarsFromEnv()
 	inactiveSeconds := 0
-	rxHistory := make([]int, rxHistoryLength)
+	rxHistory := make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
+	sleepTime := time.Duration(pollRate) * time.Second
 	for {
 		rxPackets := getRxPackets()
 		rxHistory = append(rxHistory[1:], rxPackets)
-		activeClients := getActiveClients()
 		// if the container is running, see if it needs to be stopped
 		if isContainerOn() {
-			// if no clients are active on ports and threshhold packets haven't been recieved in HISTLENGTH*POLLRATE secs
-			if activeClients == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
+			// if no clients are active on ports and threshhold packets haven't been recieved in TIMEOUT secs
+			if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
 				// count up if we have no active clients
 				inactiveSeconds = inactiveSeconds + pollRate
-				fmt.Println(inactiveSeconds,"/",inactiveTimeout, "seconds without an active client")
+				fmt.Println(inactiveSeconds, "/", inactiveTimeout, "seconds without an active client")
 				if inactiveSeconds >= inactiveTimeout {
 					stopContainers()
 				}
@@ -49,9 +48,13 @@ func main() {
 			if rxHistory[0]+minPacketThreshold < rxHistory[len(rxHistory)-1] {
 				inactiveSeconds = 0
 				startContainers()
+			} else {
+				if verbose {
+					fmt.Println(rxHistory[len(rxHistory)-1], "recieved out of ", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
+				}
 			}
 		}
-		time.Sleep(time.Duration(pollRate) * time.Second)
+		time.Sleep(sleepTime)
 		if verbose {
 			fmt.Println("//////////////////////////////////////////////////////////////////////////////////")
 		}
@@ -95,7 +98,7 @@ func setVarsFromEnv() {
 	inactiveTimeout, err = strconv.Atoi(os.Getenv("TIMEOUT"))
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			fmt.Println("using default because env variable TIMEOUT not set ")
+			fmt.Println("using default 60 because env variable TIMEOUT not set ")
 			inactiveTimeout = 60
 		} else {
 			panic(err)
@@ -106,7 +109,7 @@ func setVarsFromEnv() {
 	minPacketThreshold, err = strconv.Atoi(os.Getenv("MINPACKETTHRESH"))
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			fmt.Println("using default because env variable MINPACKETTHRESH not set ")
+			fmt.Println("using default 10 because env variable MINPACKETTHRESH not set ")
 			minPacketThreshold = 10
 		} else {
 			panic(err)
@@ -117,14 +120,12 @@ func setVarsFromEnv() {
 	pollRate, err = strconv.Atoi(os.Getenv("POLLRATE"))
 	if err != nil {
 		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			fmt.Println("using default because env variable POLLRATE not set ")
+			fmt.Println("using default 5 because env variable POLLRATE not set ")
 			pollRate = 5
 		} else {
 			panic(err)
 		}
 	}
-
-	rxHistoryLength = int(math.Ceil(float64(inactiveTimeout / pollRate)))
 }
 
 func getRxPackets() int {
