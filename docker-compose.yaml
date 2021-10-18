@@ -6,10 +6,10 @@ services:
     environment:
       - PORT=81,82           # comma separated list of ports...or just the one 
       - LABEL=lazytainer     # value of lazytainer.marker for other containers that lazytainer checks
-      # - TIMEOUT=30         # OPTIONAL number of seconds to let container idle
-      # - MINPACKETTHRESH=10 # OPTIONAL number of packets that must be recieved to keepalive/start container 
-      # - POLLRATE=5         # OPTIONAL number of packets that must be recieved to keepalive/start container 
-      # - VERBOSE=true
+      - TIMEOUT=30           # OPTIONAL number of seconds to let container idle
+      - MINPACKETTHRESH=10   # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      - POLLRATE=1           # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      - VERBOSE=true         # probably set this to false unless you're debugging or doing the initial demo
     ports:
       - 81:81
       - 82:82

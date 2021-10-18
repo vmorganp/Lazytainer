@@ -6,29 +6,29 @@ Putting your containers to sleep
 ---
 
 ## How it works
-### Lazy loading containers
-monitor network traffic for active connections and recieved packets , 
-if traffic looks to be idle, your container stops
-if it looks like you're trying to access a stopped container, it starts
+monitors network traffic for active connections and recieved packets  
+if traffic looks to be idle, container stops
+if traffic is incoming to stopped container, container starts
 
-### Want to test it?
+## Want to test it?
 ```
 $ git clone https://github.com/vmorganp/Lazytainer
 $ cd Lazytainer
 $ docker-compose up 
 ```
 
-### Or put in your docker compose
+## Or put in your docker compose
 ```
   lazytainer:
     container_name: lazytainer
     image: ghcr.io/vmorganp/lazytainer:master
     environment:
-      - PORT=81,82 # comma separated list of ports...or just the one 
-      - LABEL=lazytainer # value of lazytainer.marker for other containers that lazytainer checks
-      # - TIMEOUT=30 # OPTIONAL number of seconds to let container idle
-      # - RXHISTLENGTH=10 # OPTIONAL number of seconds to keep rx history, uptime is calculated as first item and last item from this and must have a gap of at least $MINPACKETTHRESH
-      # - MINPACKETTHRESH=10 # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      - PORT=81           # comma separated list of ports...or just the one 
+      - LABEL=lazytainer     # value of lazytainer.marker for other containers that lazytainer checks
+      # - TIMEOUT=30           # OPTIONAL number of seconds to let container idle
+      # - MINPACKETTHRESH=10   # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      # - POLLRATE=1           # OPTIONAL number of packets that must be recieved to keepalive/start container 
+      # - VERBOSE=true         # probably set this to false unless you're debugging or doing the initial demo
     ports:
       - 81:81
     volumes:
@@ -44,6 +44,3 @@ $ docker-compose up
     labels:
       - "lazytainer.marker=lazytainer" # required label to make it work
 ```
-
-## TODO
-- improve logging - verbosity flags
