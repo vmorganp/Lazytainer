@@ -30,8 +30,17 @@ func main() {
 	for {
 		rxPackets := getRxPackets()
 		rxHistory = append(rxHistory[1:], rxPackets)
+		if rxHistory[0] > rxHistory[len(rxHistory)-1] {
+			rxHistory = make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
+			if verbose {
+				fmt.Println("rx packets overflowed and reset")
+			}
+		}
 		// if the container is running, see if it needs to be stopped
 		if isContainerOn() {
+			if verbose {
+				fmt.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets recieved in the last", inactiveTimeout, "seconds")
+			}
 			// if no clients are active on ports and threshhold packets haven't been recieved in TIMEOUT secs
 			if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
 				// count up if we have no active clients
