@@ -1,14 +1,12 @@
 # Lazytainer - Lazy Load Containers
 Putting your containers to sleep  
-
-*I don't really wanna do the work today*
-
+[![Docker](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml)
 ---
 
 ## How it works
-monitors network traffic for active connections and recieved packets  
-if traffic looks to be idle, container stops
-if traffic is incoming to stopped container, container starts
+Monitors network traffic for active connections and recieved packets  
+If traffic looks to be idle, container stops  
+If traffic is incoming to stopped container, container starts
 
 ## Want to test it?
 ```
@@ -17,7 +15,7 @@ $ cd Lazytainer
 $ docker-compose up 
 ```
 
-## Or put in your docker compose
+## Or put in your docker-compose.yaml
 ```
   lazytainer:
     container_name: lazytainer
@@ -44,3 +42,17 @@ $ docker-compose up
     labels:
       - "lazytainer.marker=lazytainer" # required label to make it work
 ```
+
+## Configuration
+### Notes
+- Lazytainer does not "automatically" start and stop all of your containers. You must apply a label to them and proxy their traffic through the Lazytainer container.
+
+### Environment Variables
+| Variable        | Purpose                                                                                                    |
+| --------------- | ---------------------------------------------------------------------------------------------------------- |
+| PORT            | Port number(s) to listen for traffic on. If specifying multiple, they should be comma separated            |
+| LABEL           | Value for label `lazytainer.marker` that lazytainer should use to determine which containers to start/stop |
+| TIMEOUT         | Number of seconds container will be allowed to run with no traffic before it is stopped                    |
+| MINPACKETTHRESH | Mimimum amount of recieved network packets to keep container alive                                         |
+| POLLRATE        | Number of seconds to wait between polls of network transmission stats                                      |
+| VERBOSE         | Whether or not to print noisier logs that may be useful for debugging                                      |
