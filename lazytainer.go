@@ -28,8 +28,7 @@ func main() {
 	rxHistory := make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
 	sleepTime := time.Duration(pollRate) * time.Second
 	for {
-		rxPackets := getRxPackets()
-		rxHistory = append(rxHistory[1:], rxPackets)
+		rxHistory = append(rxHistory[1:], getRxPackets())
 		if rxHistory[0] > rxHistory[len(rxHistory)-1] {
 			rxHistory = make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
 			if verbose {
@@ -43,7 +42,7 @@ func main() {
 			}
 			// if no clients are active on ports and threshhold packets haven't been recieved in TIMEOUT secs
 			if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
-				// count up if we have no active clients
+				// count up if no active clients
 				inactiveSeconds = inactiveSeconds + pollRate
 				fmt.Println(inactiveSeconds, "/", inactiveTimeout, "seconds without an active client or sufficient traffic on running container")
 				if inactiveSeconds >= inactiveTimeout {
@@ -59,7 +58,7 @@ func main() {
 				startContainers()
 			} else {
 				if verbose {
-					fmt.Println(rxHistory[len(rxHistory)-1], "recieved out of ", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
+					fmt.Println(rxHistory[len(rxHistory)-1], "recieved out of", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
 				}
 			}
 		}
@@ -78,7 +77,7 @@ func setVarsFromEnv() {
 
 	portsCSV := os.Getenv("PORT")
 	if portsCSV == "" {
-		panic("you must set env variable PORTS")
+		panic("you must set env variable PORT")
 	}
 	// ports to check for active connections
 	portsArray := strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
