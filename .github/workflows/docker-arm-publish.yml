@@ -68,5 +68,4 @@ jobs:
           platforms: linux/arm64
           build-args: |
             GOARCH=arm64
-            GOOS=linux
           labels: ${{ steps.meta.outputs.labels }}

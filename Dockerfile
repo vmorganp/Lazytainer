@@ -1,4 +1,8 @@
-from golang:alpine3.15
+FROM golang:alpine3.15
+
+ARG GOARCH
+ENV GOARCH=${GOARCH:-amd64}
+
 WORKDIR /root/
 COPY ./go.mod ./go.sum ./
 RUN go mod download
