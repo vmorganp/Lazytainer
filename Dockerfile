@@ -1,11 +1,9 @@
 FROM golang:alpine3.15
 
-ARG GOARCH
-ENV GOARCH=${GOARCH:-amd64}
 
 WORKDIR /root/
 COPY ./go.mod ./go.sum ./
-RUN go mod download
+RUN /bin/sh -c 'go mod download'
 COPY ./lazytainer.go .
 RUN go build lazytainer.go
 
