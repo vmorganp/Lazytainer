@@ -38,9 +38,9 @@ func main() {
 		// if the container is running, see if it needs to be stopped
 		if isContainerOn() {
 			if verbose {
-				fmt.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets recieved in the last", inactiveTimeout, "seconds")
+				fmt.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets received in the last", inactiveTimeout, "seconds")
 			}
-			// if no clients are active on ports and threshhold packets haven't been recieved in TIMEOUT secs
+			// if no clients are active on ports and threshold packets haven't been received in TIMEOUT secs
 			if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
 				// count up if no active clients
 				inactiveSeconds = inactiveSeconds + pollRate
@@ -52,13 +52,13 @@ func main() {
 				inactiveSeconds = 0
 			}
 		} else {
-			// if more than THRESHHOLD rx in last RXHISTSECONDS seconds, start the container
+			// if more than THRESHOLD rx in last RXHISTSECONDS seconds, start the container
 			if rxHistory[0]+minPacketThreshold < rxHistory[len(rxHistory)-1] {
 				inactiveSeconds = 0
 				startContainers()
 			} else {
 				if verbose {
-					fmt.Println(rxHistory[len(rxHistory)-1], "recieved out of", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
+					fmt.Println(rxHistory[len(rxHistory)-1], "received out of", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
 				}
 			}
 		}
