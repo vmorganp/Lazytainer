@@ -193,10 +193,19 @@ func stopContainers() {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
 	for _, c := range getContainers() {
-		if err := dockerClient.ContainerStop(context.Background(), c.ID, nil); err != nil {
-			fmt.Printf("Unable to stop container %s: %s\n", c.Names[0], err)
-		} else {
-			fmt.Println("stopped container ", c.Names[0])
+		stopMethod := strings.ToLower(c.Labels["lazytainer.sleepMethod"])
+		if stopMethod == "stop" || stopMethod == "" {
+			if err := dockerClient.ContainerStop(context.Background(), c.ID, nil); err != nil {
+				fmt.Printf("Unable to stop container %s: %s\n", c.Names[0], err)
+			} else {
+				fmt.Println("stopped container ", c.Names[0])
+			}
+		} else if stopMethod == "pause" {
+			if err := dockerClient.ContainerPause(context.Background(), c.ID); err != nil {
+				fmt.Printf("Unable to pause container %s: %s\n", c.Names[0], err)
+			} else {
+				fmt.Println("paused container ", c.Names[0])
+			}
 		}
 	}
 }
@@ -206,10 +215,19 @@ func startContainers() {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
 	for _, c := range getContainers() {
-		if err := dockerClient.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}); err != nil {
-			fmt.Printf("Unable to start container %s: %s\n", c.Names[0], err)
-		} else {
-			fmt.Println("started container ", c.Names[0])
+		stopMethod := strings.ToLower(c.Labels["lazytainer.sleepMethod"])
+		if stopMethod == "stop" || stopMethod == "" {
+			if err := dockerClient.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}); err != nil {
+				fmt.Printf("Unable to start container %s: %s\n", c.Names[0], err)
+			} else {
+				fmt.Println("started container ", c.Names[0])
+			}
+		} else if stopMethod == "pause" {
+			if err := dockerClient.ContainerUnpause(context.Background(), c.ID); err != nil {
+				fmt.Printf("Unable to unpause container %s: %s\n", c.Names[0], err)
+			} else {
+				fmt.Println("unpaused container ", c.Names[0])
+			}
 		}
 	}
 }

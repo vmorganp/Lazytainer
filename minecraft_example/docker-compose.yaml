@@ -23,6 +23,9 @@ services:
     restart: unless-stopped
     labels:
       - "lazytainer.marker=lazytainer"
+      - "lazytainer.sleepMethod=stop"  # can be either "stop" or "pause", or left blank for stop
+      # using "stop" will release the memory associated with the server
+      # using "pause" will keep the memory allocated, however it will restart much faster
     depends_on: 
       - lazytainer
     volumes:
