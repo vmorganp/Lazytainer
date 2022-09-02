@@ -1,13 +1,9 @@
-FROM golang:alpine3.15
-
-WORKDIR /root/
-COPY ./go.mod ./go.sum ./
+FROM golang as build
+WORKDIR /app
+COPY . .
 RUN go mod download
-COPY ./lazytainer.go .
-RUN go build lazytainer.go
+RUN go build -trimpath -ldflags="-s -w" lazytainer.go
 
-FROM alpine:latest
-WORKDIR /root/
-COPY --from=0 /root/lazytainer ./
-
-CMD ["./lazytainer"]
+FROM scratch
+COPY --from=build /app/lazytainer /usr/local/bin/lazytainer
+ENTRYPOINT ["/usr/local/bin/lazytainer"]

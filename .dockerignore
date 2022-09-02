@@ -1,0 +1,6 @@
+# Ignore everything
+*
+
+# But these files...
+!**/go.**
+!**.go
