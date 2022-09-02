@@ -17,7 +17,7 @@ services:
     environment:
       EULA: "TRUE"
       TYPE: FTBA
-      FTB_MODPACK_ID: 79 # direwolf20 1.16
+      FTB_MODPACK_ID: 79  # direwolf20 1.16
       # MEMORYSIZE: 15G
       # MEMORY: 15G
     restart: unless-stopped
