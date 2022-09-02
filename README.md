@@ -41,7 +41,7 @@ $ docker-compose up
       - lazytainer # wait for lazytainer to start before starting
     labels:
       - "lazytainer.marker=lazytainer" # required label to make it work
-      - "lazytainer.marker=stop"       # can be either "stop" or "pause", or left blank for stop
+      - "lazytainer.sleepMethod=stop"       # can be either "stop" or "pause", or left blank for stop
 ```
 
 ## Configuration
