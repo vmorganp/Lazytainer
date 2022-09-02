@@ -7,7 +7,7 @@ docker-compose up
 ```
 
 ## Watch the magic happen
-after 90 seconds of no activity the server should stop
+After a configurable period of no activity the server should stop  
 if you generate some traffic by trying to connect to the instance or running a command like
 
 `telnet localhost 25565`
