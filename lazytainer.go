@@ -83,19 +83,9 @@ func setVarsFromEnv() {
 	if portsCSV == "" {
 		panic("you must set env variable PORT")
 	}
+
 	// ports to check for active connections
 	portsArray = strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
-	ports = ""
-	for i, port := range portsArray {
-		if i == 0 {
-			ports += "'"
-		}
-		if i+1 < len(portsArray) {
-			ports += string(port) + "\\|"
-		} else {
-			ports += string(port) + "'"
-		}
-	}
 
 	// logging level, should probably use a lib for this
 	verboseString := os.Getenv("VERBOSE")
