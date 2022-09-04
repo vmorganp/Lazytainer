@@ -5,22 +5,26 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/cakturk/go-netstat/netstat"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
-var label string
-var ports string
-var inactiveTimeout int
-var minPacketThreshold int
-var pollRate int
-var verbose bool
+var (
+	label      string
+	portsArray []string
+
+	ports              string
+	inactiveTimeout    int
+	minPacketThreshold int
+	pollRate           int
+	verbose            bool
+)
 
 func main() {
 	setVarsFromEnv()
@@ -80,7 +84,7 @@ func setVarsFromEnv() {
 		panic("you must set env variable PORT")
 	}
 	// ports to check for active connections
-	portsArray := strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
+	portsArray = strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
 	ports = ""
 	for i, port := range portsArray {
 		if i == 0 {
@@ -88,7 +92,6 @@ func setVarsFromEnv() {
 		}
 		if i+1 < len(portsArray) {
 			ports += string(port) + "\\|"
-
 		} else {
 			ports += string(port) + "'"
 		}
@@ -150,14 +153,28 @@ func getRxPackets() int {
 
 func getActiveClients() int {
 	// get active clients
-	// TODO make this not use exec
-	out, err := exec.Command("/bin/sh", "-c", "netstat -n | grep ESTABLISHED | awk '{ print $4 }' | rev | cut -d: -f1| rev | grep "+ports+" | wc -l").Output() // todo make this handle multiple ports?
+	var allSocks []netstat.SockTabEntry
+	udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
 	check(err)
-	activeClients, err := strconv.Atoi(strings.TrimSpace(string(out)))
+	udp6Socks, err := netstat.UDP6Socks(netstat.NoopFilter)
 	check(err)
+	tcpSocks, err := netstat.TCPSocks(netstat.NoopFilter)
+	check(err)
+	tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
+	check(err)
+
+	activeClients := 0
+	for _, socketEntry := range append(append(append(append(allSocks, udp6Socks...), tcp6Socks...), tcpSocks...), udpSocks...) {
+		if socketEntry.State.String() == "ESTABLISHED" {
+			for _, aPort := range portsArray {
+				if aPort == fmt.Sprintf("%v", socketEntry.LocalAddr.Port) {
+					activeClients++
+				}
+			}
+		}
+	}
 	if verbose {
 		fmt.Println(activeClients, "active clients")
-
 	}
 	return activeClients
 }
