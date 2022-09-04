@@ -1,10 +1,12 @@
-FROM golang:alpine as build
-RUN apk add --no-cache g++
+# syntax = docker/dockerfile:latest
+FROM golang as build
 WORKDIR /app
 COPY . .
-RUN go mod download
-RUN go build -trimpath -ldflags="-s -w" -o lazytainer ./...
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
+  go mod tidy; \
+  CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o lazytainer ./...
 
-FROM alpine
+FROM scratch
 COPY --from=build /app/lazytainer /usr/local/bin/lazytainer
 ENTRYPOINT ["/usr/local/bin/lazytainer"]
