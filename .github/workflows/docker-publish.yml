@@ -7,7 +7,7 @@ name: Docker Build and Publish
 
 on:
   push:
-    branches: [ feat/moreArmSupport ]
+    branches: [ master ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
@@ -32,7 +32,7 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
