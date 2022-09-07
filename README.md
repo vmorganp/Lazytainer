@@ -35,6 +35,7 @@ $ docker-compose up
   whoami1:
     container_name: whoami1
     image: containous/whoami
+    # configuring service ports is container specific. Look up how to do this on your service of choice
     command: --port 81  # make this run on the port passed through on lazytainer
     network_mode: service:lazytainer
     depends_on:
