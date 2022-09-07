@@ -1,13 +1,12 @@
-FROM golang:alpine3.15
+# syntax = docker/dockerfile:latest
+FROM golang as build
+WORKDIR /app
+COPY . .
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
+  go mod tidy; \
+  CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o lazytainer ./...
 
-WORKDIR /root/
-COPY ./go.mod ./go.sum ./
-RUN go mod download
-COPY ./lazytainer.go .
-RUN go build lazytainer.go
-
-FROM alpine:latest
-WORKDIR /root/
-COPY --from=0 /root/lazytainer ./
-
-CMD ["./lazytainer"]
+FROM scratch
+COPY --from=build /app/lazytainer /usr/local/bin/lazytainer
+ENTRYPOINT ["/usr/local/bin/lazytainer"]
