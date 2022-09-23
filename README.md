@@ -3,10 +3,8 @@ Putting your containers to sleep
 [![Docker](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml)
 ---
 
-## How it works
-Monitors network traffic for active connections and recieved packets
-If traffic looks to be idle, container stops
-If traffic is incoming to stopped container, container starts
+## Quick Explanation
+Monitors network traffic to containers. If there is traffic, the container runs, otherwise the container is stopped/paused. for more details check out [How it works](#how-it-works).
 
 ## Want to test it?
 ```
@@ -58,3 +56,10 @@ $ docker-compose up
 | MINPACKETTHRESH | Mimimum amount of recieved network packets to keep container alive                                         |
 | POLLRATE        | Number of seconds to wait between polls of network transmission stats                                      |
 | VERBOSE         | Whether or not to print noisier logs that may be useful for debugging                                      |
+
+## How it works
+Lazytainer sits between users and the containers they are accessing, and acts as a network proxy.
+
+Lazytainer checks to see if $MINPACKETTHRESH number of packets have been recieved in $TIMEOUT number of seconds. If the number of packets is above $MINPACKETTHRESH the container will start/remain on depending on prior state. If the number of packets is less than $MINPACKETTHRESH, the container will stop/pause or remain stopped/pause depending on prior state and configuration.
+
+If you use a reverse proxy like Caddy, NGINX, Traefik, or others, you can still point your reverse proxy of choice to your service. Instead of pointing directly at your service, you must instead point your reverse proxy to lazytainer, which will then pass your traffic to your service container.
