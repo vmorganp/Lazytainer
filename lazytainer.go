@@ -24,6 +24,7 @@ var (
 	minPacketThreshold int
 	pollRate           int
 	verbose            bool
+	listenInterface    string
 )
 
 func main() {
@@ -127,11 +128,16 @@ func setVarsFromEnv() {
 			panic(err)
 		}
 	}
+
+	listenInterface = os.Getenv("INTERFACE")
+	if listenInterface == "" {
+		fmt.Println("using default eth0 because env variable INTERFACE not set ")
+		listenInterface = "eth0"
+	}
 }
 
 func getRxPackets() int {
-	// get rx packets outside of the if bc we do it either way
-	rx, err := os.ReadFile("/sys/class/net/eth0/statistics/rx_packets")
+	rx, err := os.ReadFile("/sys/class/net/" + listenInterface + "/statistics/rx_packets")
 	check(err)
 	rxPackets, err := strconv.Atoi(strings.TrimSpace(string(rx)))
 	check(err)

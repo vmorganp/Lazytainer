@@ -10,6 +10,7 @@ services:
       - MINPACKETTHRESH=10  # OPTIONAL number of packets that must be recieved to keepalive/start container
       - POLLRATE=1          # OPTIONAL number of seconds to sleep between polls
       - VERBOSE=true        # probably set this to false unless you're debugging or doing the initial demo
+      - INTERFACE=eth0 # OPTIONAL interface to listen on - use eth0 in most cases
     ports:
       - 81:81
       - 82:82
