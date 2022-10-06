@@ -137,6 +137,7 @@ func setVarsFromEnv() {
 }
 
 func getRxPackets() int {
+	// get rx packets outside of the if bc we do it either way
 	rx, err := os.ReadFile("/sys/class/net/" + listenInterface + "/statistics/rx_packets")
 	check(err)
 	rxPackets, err := strconv.Atoi(strings.TrimSpace(string(rx)))
