@@ -25,6 +25,7 @@ $ docker-compose up
       # - MINPACKETTHRESH=10  # OPTIONAL number of packets that must be recieved to keepalive/start container
       # - POLLRATE=1          # OPTIONAL number of seconds to sleep between polls
       # - VERBOSE=true        # probably set this to false unless you're debugging or doing the initial demo
+      # - INTERFACE=eth0      # OPTIONAL interface to listen on - use eth0 in most cases
     ports:
       - 81:81
     volumes:
@@ -56,6 +57,7 @@ $ docker-compose up
 | MINPACKETTHRESH | Mimimum amount of recieved network packets to keep container alive                                         |
 | POLLRATE        | Number of seconds to wait between polls of network transmission stats                                      |
 | VERBOSE         | Whether or not to print noisier logs that may be useful for debugging                                      |
+| INTERFACE       | What interface to check for received packets on                                                            |
 
 ## How it works
 Lazytainer sits between users and the containers they are accessing, and acts as a network proxy.
