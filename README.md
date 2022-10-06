@@ -54,7 +54,7 @@ $ docker-compose up
 | PORT            | Port number(s) to listen for traffic on. If specifying multiple, they should be comma separated            |
 | LABEL           | Value for label `lazytainer.marker` that lazytainer should use to determine which containers to start/stop |
 | TIMEOUT         | Number of seconds container will be allowed to run with no traffic before it is stopped                    |
-| MINPACKETTHRESH | Mimimum amount of recieved network packets to keep container alive                                         |
+| MINPACKETTHRESH | Minimum amount of received network packets to keep container alive                                         |
 | POLLRATE        | Number of seconds to wait between polls of network transmission stats                                      |
 | VERBOSE         | Whether or not to print noisier logs that may be useful for debugging                                      |
 | INTERFACE       | What interface to check for received packets on                                                            |
@@ -62,6 +62,6 @@ $ docker-compose up
 ## How it works
 Lazytainer sits between users and the containers they are accessing, and acts as a network proxy.
 
-Lazytainer checks to see if $MINPACKETTHRESH number of packets have been recieved in $TIMEOUT number of seconds. If the number of packets is above $MINPACKETTHRESH the container(s) with the label will ALL start/remain on depending on prior state. If the number of packets is less than $MINPACKETTHRESH, the container(s) with the label wil ALL stop/pause or remain stopped/pause depending on prior state and configuration.
+Lazytainer checks to see if $MINPACKETTHRESH number of packets have been received in $TIMEOUT number of seconds. If the number of packets is above $MINPACKETTHRESH the container(s) with the label will ALL start/remain on depending on prior state. If the number of packets is less than $MINPACKETTHRESH, the container(s) with the label wil ALL stop/pause or remain stopped/pause depending on prior state and configuration.
 
 If you use a reverse proxy like Caddy, NGINX, Traefik, or others, you can still point your reverse proxy of choice to your service. Instead of pointing directly at your service, you must instead point your reverse proxy to lazytainer, which will then pass your traffic to your service container.
