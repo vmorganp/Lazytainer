@@ -11,7 +11,7 @@ Then run `docker compose up` after you have set the values to your liking.
 Connect to your ZeroTier container:
 
 ```console
-docker exec -it zerotier-one /bin/sh
+docker exec -it zerotier /bin/sh
 ```
 
 Then connect your container to the network
