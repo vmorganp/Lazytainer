@@ -2,39 +2,44 @@ version: "3"
 services:
   lazytainer:
     container_name: lazytainer
-    image: ghcr.io/vmorganp/lazytainer:master
+    # image: ghcr.io/vmorganp/lazytainer:master
+    build: .
     environment:
-      - PORT=81,82          # comma separated list of ports...or just the one
-      - LABEL=lazytainer    # value of lazytainer.marker for other containers that lazytainer checks
-      - TIMEOUT=30          # OPTIONAL number of seconds to let container idle
-      - MINPACKETTHRESH=10  # OPTIONAL number of packets that must be recieved to keepalive/start container
-      - POLLRATE=1          # OPTIONAL number of seconds to sleep between polls
-      - VERBOSE=true        # probably set this to false unless you're debugging or doing the initial demo
+      - TIMEOUT=30 # OPTIONAL number of seconds to let container idle
+      - MINPACKETTHRESH=10 # OPTIONAL number of packets that must be recieved to keepalive/start container
+      - POLLRATE=1 # OPTIONAL number of seconds to sleep between polls
+      - VERBOSE=true # probably set this to false unless you're debugging or doing the initial demo
       - INTERFACE=eth0 # OPTIONAL interface to listen on - use eth0 in most cases
     ports:
       - 81:81
       - 82:82
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      # this configuration will cause traffic to whoami1 to start whoami2, but traffic to only whoami2 will not wake whoami1
+      # if there's no incoming traffic on port 81, pause whoami1 
+      - "lazytainer.group1.ports=81"
+      - "lazytainer.group1.sleepMethod=pause" # can be either "stop" or "pause", or left blank for stop
+      # if there's no incoming traffic on port 81 OR 82, pause whoami2
+      - "lazytainer.group2.ports=81,82"
+      - "lazytainer.group2.sleepMethod=stop" # can be either "stop" or "pause", or left blank for stop
 
   whoami1:
     container_name: whoami1
     image: containous/whoami
-    command: --port 81
+    command: --port 81 # This is specific to containous/whoami
     network_mode: service:lazytainer
     depends_on:
       - lazytainer
     labels:
-      - "lazytainer.marker=lazytainer"
-      - "lazytainer.sleepMethod=pause"  # can be either "stop" or "pause", or left blank for stop
+      - "lazytainer.groups=group1"
 
   whoami2:
     container_name: whoami2
     image: containous/whoami
-    command: --port 82
+    command: --port 82 # This is specific to containous/whoami
     network_mode: service:lazytainer
     depends_on:
       - lazytainer
     labels:
-      - "lazytainer.marker=lazytainer"
-      - "lazytainer.sleepMethod=stop"  # can be either "stop" or "pause", or left blank for stop
+      - "lazytainer.groups=group2"

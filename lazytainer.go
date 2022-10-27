@@ -75,26 +75,41 @@ func main() {
 }
 
 func setVarsFromEnv() {
-	label = os.Getenv("LABEL")
-	if label == "" {
-		panic("you must set env variable LABEL")
-	}
+	// TODO get the groups and their port mappings
+	// label = os.Getenv("LABEL")
+	// if label == "" {
+	// 	panic("you must set env variable LABEL")
+	// }
 
-	portsCSV := os.Getenv("PORT")
-	if portsCSV == "" {
-		panic("you must set env variable PORT")
-	}
+	// portsCSV := os.Getenv("PORT")
+	// if portsCSV == "" {
+	// 	panic("you must set env variable PORT")
+	// }
+
+	var err error
+
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
+	check(err)
+	filter := filters.NewArgs(filters.Arg("label", "lazytainer.marker="+label))
+	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
+	check(err)
+
+	// for _, container := range containers {
+	// 	fmt.Printf("%s %s %s\n", container.ID[:10], container.Image, container.State)
+	// }
+
+	fmt.Println(containers)
+	// return containers
+	return
 
 	// ports to check for active connections
-	portsArray = strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
+	// portsArray = strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
 
 	// logging level, should probably use a lib for this
 	verboseString := os.Getenv("VERBOSE")
 	if strings.ToLower(verboseString) == "true" {
 		verbose = true
 	}
-
-	var err error
 
 	// how long a container is allowed to have no traffic before being stopped
 	inactiveTimeout, err = strconv.Atoi(os.Getenv("TIMEOUT"))
