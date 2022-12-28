@@ -1,0 +1,43 @@
+version: '3'
+services:
+  satisfactory-server:
+    container_name: 'satisfactory'
+    image: 'wolveix/satisfactory-server:latest'
+    volumes:
+      - /dockerdata/game_services/satisfactory:/config
+    environment:
+       - MAXPLAYERS=8
+       - PGID=1000
+       - PUID=1000
+       - STEAMBETA=false
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 20G
+        reservations:
+          memory: 16G
+    network_mode: service:lazytainer-satisfactory
+    depends_on:
+      - lazytainer-satisfactory
+    labels:
+      - "lazytainer.marker=lazytainer"  # required label to make it work
+      - "lazytainer.sleepMethod=stop"   # can be either "stop" or "pause", or left blank for stop
+  lazytainer-satisfactory:
+    container_name: 'lazytainer-satisfactory'
+    hostname: 'lazytainer-satisfactory'
+    image: ghcr.io/vmorganp/lazytainer:master
+    environment:
+      - PORT=15777,7777,15000               # comma separated list of ports...or just the one
+      - LABEL=lazytainer      # value of lazytainer.marker for other containers that lazytainer checks
+      - TIMEOUT=60          # OPTIONAL number of seconds to let container idle
+      - MINPACKETTHRESH=500  # OPTIONAL number of packets that must be recieved to keepalive/start container
+      - POLLRATE=1          # OPTIONAL number of seconds to sleep between polls
+      # - VERBOSE=true        # probably set this to false unless you're debugging or doing the initial demo
+      # - INTERFACE=eth0      # OPTIONAL interface to listen on - use eth0 in most cases
+    ports:
+      - '15777:15777/udp'
+      - '7777:7777/udp'
+      - '15000:15000/udp'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
