@@ -3,266 +3,200 @@ package main
 import (
 	"context"
 	"fmt"
-	"math"
+	"log"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/cakturk/go-netstat/netstat"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
-var (
-	label      string
-	portsArray []string
-
-	ports              string
-	inactiveTimeout    int
-	minPacketThreshold int
-	pollRate           int
-	verbose            bool
-	listenInterface    string
-)
+// log := logger()
+var infoLogger *log.Logger
+var debugLogger *log.Logger
 
 func main() {
-	setVarsFromEnv()
-	inactiveSeconds := 0
-	rxHistory := make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
-	sleepTime := time.Duration(pollRate) * time.Second
-	for {
-		rxHistory = append(rxHistory[1:], getRxPackets())
-		if rxHistory[0] > rxHistory[len(rxHistory)-1] {
-			rxHistory = make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
-			if verbose {
-				fmt.Println("rx packets overflowed and reset")
-			}
-		}
-		// if the container is running, see if it needs to be stopped
-		if isContainerOn() {
-			if verbose {
-				fmt.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets received in the last", inactiveTimeout, "seconds")
-			}
-			// if no clients are active on ports and threshold packets haven't been received in TIMEOUT secs
-			if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
-				// count up if no active clients
-				inactiveSeconds = inactiveSeconds + pollRate
-				fmt.Println(inactiveSeconds, "/", inactiveTimeout, "seconds without an active client or sufficient traffic on running container")
-				if inactiveSeconds >= inactiveTimeout {
-					stopContainers()
-				}
-			} else {
-				inactiveSeconds = 0
-			}
-		} else {
-			// if more than THRESHOLD rx in last RXHISTSECONDS seconds, start the container
-			if rxHistory[0]+minPacketThreshold < rxHistory[len(rxHistory)-1] {
-				inactiveSeconds = 0
-				startContainers()
-			} else {
-				if verbose {
-					fmt.Println(rxHistory[len(rxHistory)-1], "received out of", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
-				}
-			}
-		}
-		time.Sleep(sleepTime)
-		if verbose {
-			fmt.Println("//////////////////////////////////////////////////////////////////////////////////")
-		}
+	flags := log.LstdFlags | log.Lshortfile
+	infoLogger = log.New(os.Stdout, "INFO: ", flags)
+	debugLogger = log.New(os.Stdout, "DEBUG: ", flags)
+	groups := configureFromLabels()
+	for _, v := range groups {
+		go v.MainLoop()
 	}
+
+	// apparently a caseless select functions as an infinite sleep, using that here since the mainloops are all that really matters from here on
+	select {}
+	// configureFromFile?()
+
+	// setVarsFromEnv()
+	// inactiveSeconds := 0
+	// rxHistory := make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
+	// sleepTime := time.Duration(pollRate) * time.Second
+	// for {
+	// 	rxHistory = append(rxHistory[1:], getRxPackets())
+	// 	if rxHistory[0] > rxHistory[len(rxHistory)-1] {
+	// 		rxHistory = make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
+	// 		if verbose {
+	// 			fmt.Println("rx packets overflowed and reset")
+	// 		}
+	// 	}
+	// 	// if the container is running, see if it needs to be stopped
+	// 	if isContainerOn() {
+	// 		if verbose {
+	// 			fmt.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets received in the last", inactiveTimeout, "seconds")
+	// 		}
+	// 		// if no clients are active on ports and threshold packets haven't been received in TIMEOUT secs
+	// 		if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
+	// 			// count up if no active clients
+	// 			inactiveSeconds = inactiveSeconds + pollRate
+	// 			fmt.Println(inactiveSeconds, "/", inactiveTimeout, "seconds without an active client or sufficient traffic on running container")
+	// 			if inactiveSeconds >= inactiveTimeout {
+	// 				stopContainers()
+	// 			}
+	// 		} else {
+	// 			inactiveSeconds = 0
+	// 		}
+	// 	} else {
+	// 		// if more than THRESHOLD rx in last RXHISTSECONDS seconds, start the container
+	// 		if rxHistory[0]+minPacketThreshold < rxHistory[len(rxHistory)-1] {
+	// 			inactiveSeconds = 0
+	// 			startContainers()
+	// 		} else {
+	// 			if verbose {
+	// 				fmt.Println(rxHistory[len(rxHistory)-1], "received out of", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
+	// 			}
+	// 		}
+	// 	}
+	// 	time.Sleep(sleepTime)
+	// 	if verbose {
+	// 		fmt.Println("//////////////////////////////////////////////////////////////////////////////////")
+	// 	}
+	// }
 }
 
-func setVarsFromEnv() {
-	// TODO get the groups and their port mappings
-	// label = os.Getenv("LABEL")
-	// if label == "" {
-	// 	panic("you must set env variable LABEL")
-	// }
+func configureFromLabels() map[string]LazyGroup {
+	// theoretically this could create an issue if people manually hostname their lazytainer instances the same
+	// for now the solution is "don't do that"
+	// we could definitely do something clever to get around this, but not right now.
 
-	// portsCSV := os.Getenv("PORT")
-	// if portsCSV == "" {
-	// 	panic("you must set env variable PORT")
-	// }
-
-	var err error
+	// container_id, err := os.Hostname()
+	// check(err)
+	container_id := "27d997bfecff"
 
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
-	filter := filters.NewArgs(filters.Arg("label", "lazytainer.marker="+label))
+
+	fmt.Println(container_id)
+
+	filter := filters.NewArgs(filters.Arg("id", container_id))
 	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
 	check(err)
+	fmt.Println("+++++++++++++++++++++++")
 
-	// for _, container := range containers {
-	// 	fmt.Printf("%s %s %s\n", container.ID[:10], container.Image, container.State)
-	// }
+	groups := make(map[string]LazyGroup)
+	labels := containers[0].Labels
 
-	fmt.Println(containers)
-	// return containers
-	return
+	// iterate through labels, building out config for each group
+	prefix := "lazytainer.group."
+	for label, _ := range labels {
+		if strings.HasPrefix(label, prefix) {
+			splitLabelValue := strings.Split(label, ".")
+			groupName := splitLabelValue[2]
 
-	// ports to check for active connections
-	// portsArray = strings.Split(string(strings.TrimSpace(string(portsCSV))), ",")
-
-	// logging level, should probably use a lib for this
-	verboseString := os.Getenv("VERBOSE")
-	if strings.ToLower(verboseString) == "true" {
-		verbose = true
-	}
-
-	// how long a container is allowed to have no traffic before being stopped
-	inactiveTimeout, err = strconv.Atoi(os.Getenv("TIMEOUT"))
-	if err != nil {
-		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			fmt.Println("using default 60 because env variable TIMEOUT not set ")
-			inactiveTimeout = 60
-		} else {
-			panic(err)
-		}
-	}
-
-	// number of packets required between first and last poll to keep container alive
-	minPacketThreshold, err = strconv.Atoi(os.Getenv("MINPACKETTHRESH"))
-	if err != nil {
-		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			fmt.Println("using default 10 because env variable MINPACKETTHRESH not set ")
-			minPacketThreshold = 10
-		} else {
-			panic(err)
-		}
-	}
-
-	// how many seconds to wait in between polls
-	pollRate, err = strconv.Atoi(os.Getenv("POLLRATE"))
-	if err != nil {
-		if strings.Contains(err.Error(), "strconv.Atoi: parsing \"\": invalid syntax") {
-			fmt.Println("using default 5 because env variable POLLRATE not set ")
-			pollRate = 5
-		} else {
-			panic(err)
-		}
-	}
-
-	listenInterface = os.Getenv("INTERFACE")
-	if listenInterface == "" {
-		fmt.Println("using default eth0 because env variable INTERFACE not set ")
-		listenInterface = "eth0"
-	}
-}
-
-func getRxPackets() int {
-	// get rx packets outside of the if bc we do it either way
-	rx, err := os.ReadFile("/sys/class/net/" + listenInterface + "/statistics/rx_packets")
-	check(err)
-	rxPackets, err := strconv.Atoi(strings.TrimSpace(string(rx)))
-	check(err)
-	if verbose {
-		fmt.Println(rxPackets, "rx packets")
-	}
-	return rxPackets
-}
-
-func getActiveClients() int {
-	// get active clients
-	var allSocks []netstat.SockTabEntry
-	udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
-	check(err)
-	udp6Socks, err := netstat.UDP6Socks(netstat.NoopFilter)
-	check(err)
-	tcpSocks, err := netstat.TCPSocks(netstat.NoopFilter)
-	check(err)
-	tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
-	check(err)
-
-	activeClients := 0
-	for _, socketEntry := range append(append(append(append(allSocks, udp6Socks...), tcp6Socks...), tcpSocks...), udpSocks...) {
-		if socketEntry.State.String() == "ESTABLISHED" {
-			for _, aPort := range portsArray {
-				if aPort == fmt.Sprintf("%v", socketEntry.LocalAddr.Port) {
-					activeClients++
-				}
+			// check map to see if group is already created
+			_, exists := groups[groupName]
+			if exists {
+				continue
 			}
-		}
-	}
-	if verbose {
-		fmt.Println(activeClients, "active clients")
-	}
-	return activeClients
-}
 
-func getContainers() []types.Container {
-	if label == "" {
-		panic("environment variable LABEL must be set")
-	}
+			// required parameters
 
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-	check(err)
-	filter := filters.NewArgs(filters.Arg("label", "lazytainer.marker="+label))
-	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
-	check(err)
+			// configure ports
+			var ports []uint16
+			for _, v := range strings.Split(labels[prefix+groupName+".ports"], ",") {
+				val, err := strconv.Atoi(v)
+				check(err)
+				ports = append(ports, uint16(val))
+			}
 
-	// for _, container := range containers {
-	// 	fmt.Printf("%s %s %s\n", container.ID[:10], container.Image, container.State)
-	// }
-	return containers
-}
+			// optional parameters
 
-func isContainerOn() bool {
-	for _, c := range getContainers() {
-		if c.State == "running" {
-			return true
-		}
-	}
-	return false
-}
-
-func stopContainers() {
-	fmt.Println("stopping container(s)")
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-	check(err)
-	for _, c := range getContainers() {
-		stopMethod := strings.ToLower(c.Labels["lazytainer.sleepMethod"])
-		if stopMethod == "stop" || stopMethod == "" {
-			if err := dockerClient.ContainerStop(context.Background(), c.ID, nil); err != nil {
-				fmt.Printf("Unable to stop container %s: %s\n", c.Names[0], err)
+			// configure inactiveTimeout
+			inactiveTimeout := uint16(30)
+			labelValueAsString, exists := labels[prefix+groupName+".inactiveTimeout"]
+			if exists {
+				val, err := strconv.Atoi(labelValueAsString)
+				check(err)
+				inactiveTimeout = uint16(val)
 			} else {
-				fmt.Println("stopped container ", c.Names[0])
+				debugLogger.Println("Using default timeout of 60 because " + prefix + groupName + ".inactiveTimeout was not set")
 			}
-		} else if stopMethod == "pause" {
-			if err := dockerClient.ContainerPause(context.Background(), c.ID); err != nil {
-				fmt.Printf("Unable to pause container %s: %s\n", c.Names[0], err)
+
+			// configure minPacketThreshold
+			minPacketThreshold := uint16(30)
+			labelValueAsString, exists = labels[prefix+groupName+".minPacketThreshold"]
+			if exists {
+				val, err := strconv.Atoi(labelValueAsString)
+				check(err)
+				minPacketThreshold = uint16(val)
 			} else {
-				fmt.Println("paused container ", c.Names[0])
+				debugLogger.Println("Using default threshold of 30 because " + prefix + groupName + ".minPacketThreshold was not set")
+			}
+
+			// configure netInterface
+			netInterface := "eth0"
+			labelValueAsString, exists = labels[prefix+groupName+".netInterface"]
+			if exists {
+				netInterface = labelValueAsString
+			} else {
+				debugLogger.Println("Using default netInterface of eth0 because " + prefix + groupName + ".netInterface was not set")
+			}
+
+			// configure pollRate
+			pollRate := uint16(30)
+			labelValueAsString, exists = labels[prefix+groupName+".pollRate"]
+			if exists {
+				val, err := strconv.Atoi(labelValueAsString)
+				check(err)
+				pollRate = uint16(val)
+			} else {
+				debugLogger.Println("Using default pollRate of 30 because " + prefix + groupName + ".pollRate was not set")
+			}
+
+			// configure stopMethod
+			stopMethod := "stop"
+			labelValueAsString, exists = labels[prefix+groupName+".stopMethod"]
+			if exists {
+				stopMethod = labelValueAsString
+			} else {
+				debugLogger.Println("Using default stopMethod of stop because " + prefix + groupName + ".stopMethod was not set")
+			}
+
+			groups[groupName] = LazyGroup{
+				groupName:          groupName,
+				inactiveTimeout:    inactiveTimeout,
+				minPacketThreshold: minPacketThreshold,
+				netInterface:       netInterface,
+				pollRate:           pollRate,
+				ports:              ports,
+				stopMethod:         stopMethod,
 			}
 		}
 	}
-}
 
-func startContainers() {
-	fmt.Println("starting container(s)")
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-	check(err)
-	for _, c := range getContainers() {
-		stopMethod := strings.ToLower(c.Labels["lazytainer.sleepMethod"])
-		if stopMethod == "stop" || stopMethod == "" {
-			if err := dockerClient.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}); err != nil {
-				fmt.Printf("Unable to start container %s: %s\n", c.Names[0], err)
-			} else {
-				fmt.Println("started container ", c.Names[0])
-			}
-		} else if stopMethod == "pause" {
-			if err := dockerClient.ContainerUnpause(context.Background(), c.ID); err != nil {
-				fmt.Printf("Unable to unpause container %s: %s\n", c.Names[0], err)
-			} else {
-				fmt.Println("unpaused container ", c.Names[0])
-			}
-		}
+	for _, g := range groups {
+		debugLogger.Printf("%+v\n", g)
 	}
+
+	return groups
 }
 
+// general error handling
 func check(err error) {
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
+		panic(err)
 	}
 }

@@ -1,0 +1,11 @@
+FROM golang:1.18.9-alpine3.17 as build
+RUN apk add --update build-base gcc wget git libpcap-dev
+COPY *.go go.* /app/
+WORKDIR /app/
+
+RUN go build -o app .
+
+FROM alpine
+RUN apk add --update libpcap-dev
+COPY --from=build /app/app /app/app
+ENTRYPOINT [ "./app/app" ]

@@ -1,0 +1,13 @@
+version: "3"
+services:
+  asdf:
+    container_name: asdf
+    build: .
+    # command: --port 82 # This is specific to containous/whoami
+    ports:
+      - 83:80
+    # network_mode: service:lazytainer
+    # depends_on:
+    #   - lazytainer
+    # labels:
+      # - "lazytainer.groups=group2"
