@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -21,6 +22,12 @@ func main() {
 	flags := log.LstdFlags | log.Lshortfile
 	infoLogger = log.New(os.Stdout, "INFO: ", flags)
 	debugLogger = log.New(os.Stdout, "DEBUG: ", flags)
+
+	// if the verbose flag isn't set to true, don't log debug logs
+	verbose, verboseFlagSet := os.LookupEnv("VERBOSE")
+	if !verboseFlagSet || strings.ToLower(verbose) != "true" {
+		debugLogger.SetOutput(ioutil.Discard)
+	}
 	groups := configureFromLabels()
 	for _, v := range groups {
 		go v.MainLoop()
@@ -28,62 +35,17 @@ func main() {
 
 	// apparently a caseless select functions as an infinite sleep, using that here since the mainloops are all that really matters from here on
 	select {}
-	// configureFromFile?()
 
-	// setVarsFromEnv()
-	// inactiveSeconds := 0
-	// rxHistory := make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
-	// sleepTime := time.Duration(pollRate) * time.Second
-	// for {
-	// 	rxHistory = append(rxHistory[1:], getRxPackets())
-	// 	if rxHistory[0] > rxHistory[len(rxHistory)-1] {
-	// 		rxHistory = make([]int, int(math.Ceil(float64(inactiveTimeout/pollRate))))
-	// 		if verbose {
-	// 			fmt.Println("rx packets overflowed and reset")
-	// 		}
-	// 	}
-	// 	// if the container is running, see if it needs to be stopped
-	// 	if isContainerOn() {
-	// 		if verbose {
-	// 			fmt.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets received in the last", inactiveTimeout, "seconds")
-	// 		}
-	// 		// if no clients are active on ports and threshold packets haven't been received in TIMEOUT secs
-	// 		if getActiveClients() == 0 && rxHistory[0]+minPacketThreshold > rxHistory[len(rxHistory)-1] {
-	// 			// count up if no active clients
-	// 			inactiveSeconds = inactiveSeconds + pollRate
-	// 			fmt.Println(inactiveSeconds, "/", inactiveTimeout, "seconds without an active client or sufficient traffic on running container")
-	// 			if inactiveSeconds >= inactiveTimeout {
-	// 				stopContainers()
-	// 			}
-	// 		} else {
-	// 			inactiveSeconds = 0
-	// 		}
-	// 	} else {
-	// 		// if more than THRESHOLD rx in last RXHISTSECONDS seconds, start the container
-	// 		if rxHistory[0]+minPacketThreshold < rxHistory[len(rxHistory)-1] {
-	// 			inactiveSeconds = 0
-	// 			startContainers()
-	// 		} else {
-	// 			if verbose {
-	// 				fmt.Println(rxHistory[len(rxHistory)-1], "received out of", rxHistory[0]+minPacketThreshold, "packets needed to restart container")
-	// 			}
-	// 		}
-	// 	}
-	// 	time.Sleep(sleepTime)
-	// 	if verbose {
-	// 		fmt.Println("//////////////////////////////////////////////////////////////////////////////////")
-	// 	}
-	// }
+	// TODO maybe add config file or env variable options here, but labels should do for a start
 }
 
 func configureFromLabels() map[string]LazyGroup {
 	// theoretically this could create an issue if people manually hostname their lazytainer instances the same
 	// for now the solution is "don't do that"
-	// we could definitely do something clever to get around this, but not right now.
+	// we could do something clever to get around this, but not right now.
 
-	// container_id, err := os.Hostname()
-	// check(err)
-	container_id := "27d997bfecff"
+	container_id, err := os.Hostname()
+	check(err)
 
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
@@ -93,14 +55,13 @@ func configureFromLabels() map[string]LazyGroup {
 	filter := filters.NewArgs(filters.Arg("id", container_id))
 	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
 	check(err)
-	fmt.Println("+++++++++++++++++++++++")
 
 	groups := make(map[string]LazyGroup)
 	labels := containers[0].Labels
 
 	// iterate through labels, building out config for each group
 	prefix := "lazytainer.group."
-	for label, _ := range labels {
+	for label := range labels {
 		if strings.HasPrefix(label, prefix) {
 			splitLabelValue := strings.Split(label, ".")
 			groupName := splitLabelValue[2]

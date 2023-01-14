@@ -1,12 +1,14 @@
 # syntax = docker/dockerfile:latest
-FROM golang as build
+FROM golang:1.18.9-alpine3.17 as build
+RUN apk add --update build-base gcc wget git libpcap-dev
 WORKDIR /app
-COPY . .
+COPY src/* /app/
 RUN --mount=type=cache,target=/go/pkg/mod \
   --mount=type=cache,target=/root/.cache/go-build \
   go mod tidy; \
-  CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o lazytainer ./...
+  CGO_ENABLED=1 go build -trimpath -ldflags="-s -w" -o lazytainer ./...
 
-FROM scratch
-COPY --from=build /app/lazytainer /usr/local/bin/lazytainer
-ENTRYPOINT ["/usr/local/bin/lazytainer"]
+FROM alpine
+RUN apk add --update libpcap-dev
+COPY --from=build /app/lazytainer /app/lazytainer
+ENTRYPOINT [ "./app/lazytainer" ]

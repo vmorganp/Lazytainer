@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 
@@ -10,9 +11,12 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+
+	"github.com/google/gopacket"
+	_ "github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcap"
 )
 
-// TODO get aggregated logger and docker client to be global
 type LazyGroup struct {
 	groupName          string   // the docker label associated with this group
 	inactiveTimeout    uint16   // how many seconds of inactivity before group turns off
@@ -25,15 +29,43 @@ type LazyGroup struct {
 
 func (lg LazyGroup) MainLoop() {
 	// inactiveSeconds := 0
+
+	var rxPacketCount int
+	go lg.getRxPackets(&rxPacketCount)
+	inactiveSeconds := 0
+	rxHistory := make([]int, int(math.Ceil(float64(lg.inactiveTimeout/lg.pollRate))))
 	sleepTime := time.Duration(lg.pollRate) * time.Second
 	for {
-		debugLogger.Println("tick")
-		debugLogger.Println(lg.groupName, "group is waiting for", sleepTime.Seconds(), "second(s)")
+		rxHistory = append(rxHistory[1:], rxPacketCount)
+		if rxHistory[0] > rxHistory[len(rxHistory)-1] {
+			rxHistory = make([]int, int(math.Ceil(float64(lg.inactiveTimeout/lg.pollRate))))
+			debugLogger.Println("rx packets overflowed and reset")
+		}
+		// if the container is running, see if it needs to be stopped
+		if lg.isGroupOn() {
+			debugLogger.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets received in the last", lg.inactiveTimeout, "seconds")
+			// if no clients are active on ports and threshold packets haven't been received in TIMEOUT secs
+			if lg.getActiveClients() == 0 && rxHistory[0]+int(lg.minPacketThreshold) > rxHistory[len(rxHistory)-1] {
+				// count up if no active clients
+				inactiveSeconds = inactiveSeconds + int(lg.pollRate)
+				fmt.Println(inactiveSeconds, "/", lg.inactiveTimeout, "seconds without an active client or sufficient traffic on running container")
+				if inactiveSeconds >= int(lg.inactiveTimeout) {
+					lg.stopContainers()
+				}
+			} else {
+				inactiveSeconds = 0
+			}
+		} else {
+			// if more than THRESHOLD rx in last RXHISTSECONDS seconds, start the container
+			if rxHistory[0]+int(lg.minPacketThreshold) < rxHistory[len(rxHistory)-1] {
+				inactiveSeconds = 0
+				lg.startContainers()
+			} else {
+				debugLogger.Println(rxHistory[len(rxHistory)-1], "received out of", rxHistory[0]+int(lg.minPacketThreshold), "packets needed to restart container")
+			}
+		}
 		time.Sleep(sleepTime)
-		lg.stopContainers()
-		time.Sleep(time.Second * 5)
-		lg.startContainers()
-		infoLogger.Println(lg.getActiveClients())
+		debugLogger.Println("/////////////////////////////////////////////////////////////////////////")
 	}
 }
 
@@ -89,24 +121,30 @@ func (lg LazyGroup) startContainers() {
 	}
 }
 
-// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-// 			THIS IS UBERHECKED FOR MANY TO ONE
-// 			   IT STRAIGHT UP WILL NOT WORK
-// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-// TODO TODO TODO TODO TODO TODO TODO cTODO TODO TODO TODO
+func (lg LazyGroup) getRxPackets(packetCount *int) {
+	handle, err := pcap.OpenLive(lg.netInterface, 1600, true,
+		pcap.BlockForever) // TODO I have no idea if 1600 is a "good" number. It's what's in the example in the docs though
+	check(err)
+	defer handle.Close()
 
-// func (lg LazyGroup) getRxPackets() int {
-// 	// get rx packets outside of the if bc we do it either way
-// 	rx, err := os.ReadFile("/sys/class/net/" + lg.netInterface + "/statistics/rx_packets")
-// 	check(err)
-// 	rxPackets, err := strconv.Atoi(strings.TrimSpace(string(rx)))
-// 	check(err)
-// 	// if verbose { // TODO log levels
-// 	// 	fmt.Println(rxPackets, "rx packets")
-// 	// }
-// 	return rxPackets
-// }
+	// configure filter based on passed ports
+	var filter string
+	for _, v := range lg.ports {
+		filter += "port " + strconv.Itoa(int(v)) + " or "
+	}
+	filter = filter[0 : len(filter)-4]
+
+	if err := handle.SetBPFFilter(filter); err != nil {
+		panic(err)
+	}
+
+	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	for range packetSource.Packets() {
+		// At some point this wraps around I think. I have no idea when that point is so I'm forcing it to be 1m
+		*packetCount = (*packetCount + 1) % 1000000
+		debugLogger.Println("group", lg.groupName, "recieved", *packetCount, "packets")
+	}
+}
 
 func (lg LazyGroup) getActiveClients() int {
 	// get active clients
@@ -130,8 +168,15 @@ func (lg LazyGroup) getActiveClients() int {
 			}
 		}
 	}
-	// if verbose { // TODO log levels
-	// 	fmt.Println(activeClients, "active clients")
-	// }
+	debugLogger.Println(activeClients, "active clients")
 	return activeClients
+}
+
+func (lg LazyGroup) isGroupOn() bool {
+	for _, c := range lg.getContainers() {
+		if c.State == "running" {
+			return true
+		}
+	}
+	return false
 }
