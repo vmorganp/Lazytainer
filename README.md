@@ -52,7 +52,7 @@ To assign a container to a lazytainer group, a label must be added. The label wi
 yourContainerThatWillSleep:
   ...
   labels:
-    - "lazytainer.groups=yourGroupName"
+    - "lazytainer.group=yourGroupName"
 ```
 
 Multiple containers may be in a group, such that they start and stop together.

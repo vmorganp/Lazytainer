@@ -72,7 +72,7 @@ func (lg LazyGroup) MainLoop() {
 func (lg LazyGroup) getContainers() []types.Container {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
-	filter := filters.NewArgs(filters.Arg("label", "lazytainer.groups="+lg.groupName))
+	filter := filters.NewArgs(filters.Arg("label", "lazytainer.group="+lg.groupName))
 	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
 	check(err)
 

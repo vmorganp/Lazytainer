@@ -32,7 +32,7 @@ services:
     depends_on:
       - lazytainer
     labels:
-      - "lazytainer.groups=group1"
+      - "lazytainer.group=group1"
 
   whoami2:
     container_name: whoami2
@@ -42,4 +42,4 @@ services:
     depends_on:
       - lazytainer
     labels:
-      - "lazytainer.groups=group2"
+      - "lazytainer.group=group2"

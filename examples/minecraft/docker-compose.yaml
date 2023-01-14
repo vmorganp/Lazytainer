@@ -23,7 +23,7 @@ services:
       MEMORY: 6G
     restart: unless-stopped
     labels:
-      - "lazytainer.groups=minecraft"
+      - "lazytainer.group=minecraft"
     depends_on:
       - lazytainer
     volumes:
