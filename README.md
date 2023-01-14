@@ -1,3 +1,15 @@
+# THIS NEEDS SOME DOC UPDATES BEFORE IT BECOMES A RELEASE
+- Update the examples
+  - verify that they work
+  - use the new format
+  - move them to the examples folder
+
+- Update the main README
+- Go through and comment new code
+- Check code and make sure it isn't a disaster because I wrote it at 4 am
+
+---
+
 # Lazytainer - Lazy Load Containers
 Putting your containers to sleep
 [![Docker](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml)
