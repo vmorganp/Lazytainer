@@ -24,56 +24,66 @@ $ git clone https://github.com/vmorganp/Lazytainer
 $ cd Lazytainer
 $ docker-compose up
 ```
+This will create 2 containers that you can reach through a third "lazytainer" container. 
+To test this, go to your browser and navigate to `http://localhost:81`
+If you close this tab and wait awhile you should see the container stop.
+If you come back and refresh that page a few times after it has stopped, the container should restart.
 
-## Or put in your docker-compose.yaml
-```
-  lazytainer:
-    container_name: lazytainer
-    image: ghcr.io/vmorganp/lazytainer:master
-    environment:
-      - PORT=81               # comma separated list of ports...or just the one
-      - LABEL=lazytainer      # value of lazytainer.marker for other containers that lazytainer checks
-      # - TIMEOUT=30          # OPTIONAL number of seconds to let container idle
-      # - MINPACKETTHRESH=10  # OPTIONAL number of packets that must be recieved to keepalive/start container
-      # - POLLRATE=1          # OPTIONAL number of seconds to sleep between polls
-      # - VERBOSE=true        # probably set this to false unless you're debugging or doing the initial demo
-      # - INTERFACE=eth0      # OPTIONAL interface to listen on - use eth0 in most cases
-    ports:
-      - 81:81
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
-  whoami1:
-    container_name: whoami1
-    image: containous/whoami
-    # configuring service ports is container specific. Look up how to do this on your service of choice
-    command: --port 81  # make this run on the port passed through on lazytainer
-    network_mode: service:lazytainer
-    depends_on:
-      - lazytainer # wait for lazytainer to start before starting
-    labels:
-      - "lazytainer.marker=lazytainer"  # required label to make it work
-      - "lazytainer.sleepMethod=stop"   # can be either "stop" or "pause", or left blank for stop
-```
 
 ## Configuration
-### Notes
+### Note:
 - Lazytainer does not "automatically" start and stop all of your containers. You must apply a label to them and proxy their traffic through the Lazytainer container.
 
-### Environment Variables
-| Variable        | Purpose                                                                                                    |
-| --------------- | ---------------------------------------------------------------------------------------------------------- |
-| PORT            | Port number(s) to listen for traffic on. If specifying multiple, they should be comma separated            |
-| LABEL           | Value for label `lazytainer.marker` that lazytainer should use to determine which containers to start/stop |
-| TIMEOUT         | Number of seconds container will be allowed to run with no traffic before it is stopped                    |
-| MINPACKETTHRESH | Minimum amount of received network packets to keep container alive                                         |
-| POLLRATE        | Number of seconds to wait between polls of network transmission stats                                      |
-| VERBOSE         | Whether or not to print noisier logs that may be useful for debugging                                      |
-| INTERFACE       | What interface to check for received packets on                                                            |
+### Groups 
+Lazytainer starts and stops other containers in "groups" of one or more other containers. 
+To assign a container to a lazytainer group, a label must be added. The label will look like 
+```yaml
+yourContainerThatWillSleep:
+  ...
+  labels:
+    - "lazytainer.groups=yourGroupName"
+```
 
-## How it works
-Lazytainer sits between users and the containers they are accessing, and acts as a network proxy.
+Multiple containers may be in a group, such that they start and stop together.
 
-Lazytainer checks to see if $MINPACKETTHRESH number of packets have been received in $TIMEOUT number of seconds. If the number of packets is above $MINPACKETTHRESH the container(s) with the label will ALL start/remain on depending on prior state. If the number of packets is less than $MINPACKETTHRESH, the container(s) with the label wil ALL stop/pause or remain stopped/pause depending on prior state and configuration.
+To configure a group, there are some labels that must applied to the lazytainer container. 
 
-If you use a reverse proxy like Caddy, NGINX, Traefik, or others, you can still point your reverse proxy of choice to your service. Instead of pointing directly at your service, you must instead point your reverse proxy to lazytainer, which will then pass your traffic to your service container.
+```yaml
+  lazytainer:
+    ...
+    ports: 
+      - 81:81 # These ports are being passed through to the group members
+      - 82:82
+    # ...
+    labels:
+      # configuration for group 1
+      # REQUIRED 
+      - "lazytainer.group.group1.ports=81" # Network ports associated with this group
+      # OPTIONAL
+      - "lazytainer.group.group1.inactiveTimeout=30" # how long without sufficient network activity before sleeping
+      - "lazytainer.group.group1.minPacketThreshold=30" # minimum amount of network packets for container to be on 
+      - "lazytainer.group.group1.pollRate=30" # how often to check network activity
+      - "lazytainer.group.group1.sleepMethod=pause" # can be either "stop" or "pause", or left blank for stop
+      - "lazytainer.group.group1.netInterface=eth0" # network interface to listen on
+
+      # configuration for group 2
+      - "lazytainer.group.group2.ports=81,82" # You can use a comma separated list of ports as well, if you need more than one 
+```
+
+### Other configuration
+#### Verbose Logging
+If you would like more verbose logging, you can apply the environment variable `VERBOSE=true` to lazytainer like so
+```yaml
+  lazytainer:
+    ...
+    environment:
+      - VERBOSE=true
+```
+
+#### volumes 
+If using lazytainer, you MUST provide the following volume to lazytainer
+```yaml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+```
+
