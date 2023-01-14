@@ -53,7 +53,6 @@ To configure a group, there are some labels that must applied to the lazytainer 
     ports: 
       - 81:81 # These ports are being passed through to the group members
       - 82:82
-    # ...
     labels:
       # configuration for group 1
       # REQUIRED 
