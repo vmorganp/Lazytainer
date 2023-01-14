@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -28,29 +27,26 @@ func main() {
 	if !verboseFlagSet || strings.ToLower(verbose) != "true" {
 		debugLogger.SetOutput(ioutil.Discard)
 	}
+
+	// configure groups. eventually it might be nice to have file based config as well.
 	groups := configureFromLabels()
 	for _, v := range groups {
 		go v.MainLoop()
 	}
 
-	// apparently a caseless select functions as an infinite sleep, using that here since the mainloops are all that really matters from here on
+	// a caseless select functions as an infinite sleep. Using that here since the group loops are all that really matters from here on
 	select {}
-
-	// TODO maybe add config file or env variable options here, but labels should do for a start
 }
 
 func configureFromLabels() map[string]LazyGroup {
 	// theoretically this could create an issue if people manually hostname their lazytainer instances the same
 	// for now the solution is "don't do that"
 	// we could do something clever to get around this, but not right now.
-
 	container_id, err := os.Hostname()
 	check(err)
 
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
-
-	fmt.Println(container_id)
 
 	filter := filters.NewArgs(filters.Arg("id", container_id))
 	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})

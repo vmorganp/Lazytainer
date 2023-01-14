@@ -20,19 +20,20 @@ import (
 type LazyGroup struct {
 	groupName          string   // the docker label associated with this group
 	inactiveTimeout    uint16   // how many seconds of inactivity before group turns off
-	minPacketThreshold uint16   // Minimum network traffic in packets before stop/pause occurs
+	minPacketThreshold uint16   // minimum network traffic in packets before stop/pause occurs
 	netInterface       string   // which network interface to watch traffic on. By default this is eth0 but can sometimes vary
 	pollRate           uint16   // how frequently to poll traffic statistics
-	ports              []uint16 // List of ports, which happens to also be a 16 bit range, how convenient!
+	ports              []uint16 // list of ports, which happens to also be a 16 bit range, how convenient!
 	stopMethod         string   // whether to stop or pause the container
 }
 
 func (lg LazyGroup) MainLoop() {
-	// inactiveSeconds := 0
-
+	// rxPacketCount is continiously updated by the getRxPackets goroutine
 	var rxPacketCount int
 	go lg.getRxPackets(&rxPacketCount)
+
 	inactiveSeconds := 0
+	// initialize a slice to keep track of recnt network traffic
 	rxHistory := make([]int, int(math.Ceil(float64(lg.inactiveTimeout/lg.pollRate))))
 	sleepTime := time.Duration(lg.pollRate) * time.Second
 	for {
@@ -80,7 +81,7 @@ func (lg LazyGroup) getContainers() []types.Container {
 }
 
 func (lg LazyGroup) stopContainers() {
-	fmt.Println("DEBUG: stopping container(s)")
+	debugLogger.Println("stopping container(s)")
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
 	for _, c := range lg.getContainers() {
@@ -88,20 +89,20 @@ func (lg LazyGroup) stopContainers() {
 			if err := dockerClient.ContainerStop(context.Background(), c.ID, nil); err != nil {
 				fmt.Printf("ERROR: Unable to stop container %s: %s\n", c.Names[0], err)
 			} else {
-				fmt.Println("INFO: stopped container ", c.Names[0])
+				infoLogger.Println("stopped container ", c.Names[0])
 			}
 		} else if lg.stopMethod == "pause" {
 			if err := dockerClient.ContainerPause(context.Background(), c.ID); err != nil {
 				fmt.Printf("ERROR: Unable to pause container %s: %s\n", c.Names[0], err)
 			} else {
-				fmt.Println("INFO: paused container ", c.Names[0])
+				infoLogger.Println("paused container ", c.Names[0])
 			}
 		}
 	}
 }
 
 func (lg LazyGroup) startContainers() {
-	fmt.Println("DEBUG: starting container(s)")
+	debugLogger.Println("starting container(s)")
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
 	for _, c := range lg.getContainers() {
@@ -109,13 +110,13 @@ func (lg LazyGroup) startContainers() {
 			if err := dockerClient.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}); err != nil {
 				fmt.Printf("ERROR: Unable to start container %s: %s\n", c.Names[0], err)
 			} else {
-				fmt.Println("INFO: started container ", c.Names[0])
+				infoLogger.Println("started container ", c.Names[0])
 			}
 		} else if lg.stopMethod == "pause" {
 			if err := dockerClient.ContainerUnpause(context.Background(), c.ID); err != nil {
 				fmt.Printf("ERROR: Unable to unpause container %s: %s\n", c.Names[0], err)
 			} else {
-				fmt.Println("INFO: unpaused container ", c.Names[0])
+				infoLogger.Println("unpaused container ", c.Names[0])
 			}
 		}
 	}
@@ -127,7 +128,7 @@ func (lg LazyGroup) getRxPackets(packetCount *int) {
 	check(err)
 	defer handle.Close()
 
-	// configure filter based on passed ports
+	// configure filter based on passed ports, looks like "port 80 or port 81 or etc..."
 	var filter string
 	for _, v := range lg.ports {
 		filter += "port " + strconv.Itoa(int(v)) + " or "
@@ -140,7 +141,8 @@ func (lg LazyGroup) getRxPackets(packetCount *int) {
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	for range packetSource.Packets() {
-		// At some point this wraps around I think. I have no idea when that point is so I'm forcing it to be 1m
+		// At some point this wraps around I think.
+		// I have no idea when that point is or what the consequences of letting it happen are so I'm forcing it to be 1m
 		*packetCount = (*packetCount + 1) % 1000000
 		debugLogger.Println("group", lg.groupName, "recieved", *packetCount, "packets")
 	}
