@@ -17,7 +17,7 @@ services:
       - "lazytainer.group.group1.ports=81"
       - "lazytainer.group.group1.MINPACKETTHRESH=10"
       - "lazytainer.group.group1.sleepMethod=stop" # can be either "stop" or "pause", or left blank for stop
-      - "lazytainer.group.group1.netInterface=ztukuxxqii" # can be either "stop" or "pause", or left blank for stop
+      - "lazytainer.group.group1.netInterface=ztukuxxqii" 
 
   zerotier:
     image: zyclonite/zerotier
