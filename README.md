@@ -33,55 +33,58 @@ Lazytainer does not "automatically" start and stop all of your containers. You m
 ### Examples
 For examples of lazytainer in action, check out the [Examples](./examples/)
 
-### Groups 
-Lazytainer starts and stops other containers in "groups" of one or more other containers. 
-To assign a container to a lazytainer group, a label must be added. The label will look like 
+### Groups
+Lazytainer starts and stops other containers in "groups" of one or more other containers. To assign a container to a lazytainer group, a label must be added. The label will look like this.
+
 ```yaml
 yourContainerThatWillSleep:
   ...
   labels:
-    - "lazytainer.group=yourGroupName"
+    - "lazytainer.group=<yourGroupName>"
 ```
 
-Multiple containers may be in a group, such that they start and stop together.
-
-To configure a group, there are some labels that must applied to the lazytainer container. 
-
+To configure a group, add labels to the lazytainer container like this. Note that each is required to have a port(s) specified. These ports must also be forwarded on the lazytainer container
 ```yaml
   lazytainer:
-    ...
-    ports: 
-      - 81:81 # These ports are being passed through to the group members
-      - 82:82
+    # ... configuration omitted for brevity
+	ports: 
+      - 81:81 # used by group1 and group2
+      - 82:82 # used by group2
     labels:
+	  # Configuration items are formatted like this
+     - "lazytainer.group.<yourGroupName>.<property>=value"
       # configuration for group 1
-      # REQUIRED 
-      - "lazytainer.group.group1.ports=81" # Network ports associated with this group
-      # OPTIONAL
-      - "lazytainer.group.group1.inactiveTimeout=30"    # how long without sufficient network activity before sleeping
-      - "lazytainer.group.group1.minPacketThreshold=30" # minimum amount of network packets for container to be on 
-      - "lazytainer.group.group1.pollRate=30"           # how often to check network activity
-      - "lazytainer.group.group1.sleepMethod=pause"     # can be either "stop" or "pause", or left blank for stop
-      - "lazytainer.group.group1.netInterface=eth0"     # network interface to listen on
-
+      - "lazytainer.group.group1.ports=81"
       # configuration for group 2
-      - "lazytainer.group.group2.ports=81,82" # You can use a comma separated list of ports as well, if you need more than one 
+      - "lazytainer.group.group2.ports=81,82"
 ```
 
-### Other configuration
+Group properties that can be changed include:
+
+| Name               | description                                                                            | required | default |
+| ------------------ | -------------------------------------------------------------------------------------- | -------- | ------- |
+| ports              | Network ports associated with a group, can be comma separated                          | Yes      | n/a     |
+| inactiveTimeout    | Time (seconds) before container is stopped when there is insufficient network activity | No       | 30      |
+| minPacketThreshold | Minimum count of network packets for container to be on                                | No       | 30      |
+| pollRate           | How frequently (seconds) to check network activity                                     | No       | 30      |
+| sleepMethod        | How to put the container to sleep. Can be `stop` or `pause`                            | No       | `stop`  |
+| netInterface       | Network interface to listen on                                                         | No       | `eth0`  |
+
+### Additional Configuration
 #### Verbose Logging
 If you would like more verbose logging, you can apply the environment variable `VERBOSE=true` to lazytainer like so
 ```yaml
   lazytainer:
-    ...
+	# ... configuration omitted for brevity
     environment:
       - VERBOSE=true
 ```
 
-#### volumes 
+#### Volumes 
 If using lazytainer, you MUST provide the following volume to lazytainer
 ```yaml
+  lazytainer:
+	# ... configuration omitted for brevity
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 ```
-
