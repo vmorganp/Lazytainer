@@ -38,7 +38,7 @@ Lazytainer starts and stops other containers in "groups" of one or more other co
 
 ```yaml
 yourContainerThatWillSleep:
-  ...
+  # ... configuration omitted for brevity
   labels:
     - "lazytainer.group=<yourGroupName>"
 ```
@@ -47,12 +47,12 @@ To configure a group, add labels to the lazytainer container like this. Note tha
 ```yaml
   lazytainer:
     # ... configuration omitted for brevity
-	ports: 
+    ports: 
       - 81:81 # used by group1 and group2
       - 82:82 # used by group2
     labels:
-	  # Configuration items are formatted like this
-     - "lazytainer.group.<yourGroupName>.<property>=value"
+      # Configuration items are formatted like this
+      - "lazytainer.group.<yourGroupName>.<property>=value"
       # configuration for group 1
       - "lazytainer.group.group1.ports=81"
       # configuration for group 2
@@ -75,7 +75,7 @@ Group properties that can be changed include:
 If you would like more verbose logging, you can apply the environment variable `VERBOSE=true` to lazytainer like so
 ```yaml
   lazytainer:
-	# ... configuration omitted for brevity
+    # ... configuration omitted for brevity
     environment:
       - VERBOSE=true
 ```
@@ -84,7 +84,7 @@ If you would like more verbose logging, you can apply the environment variable `
 If using lazytainer, you MUST provide the following volume to lazytainer
 ```yaml
   lazytainer:
-	# ... configuration omitted for brevity
+    # ... configuration omitted for brevity
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 ```
