@@ -1,0 +1,43 @@
+version: "3"
+services:
+  lazytainer:
+    container_name: lazytainer
+    image: ghcr.io/vmorganp/lazytainer:master
+    environment:
+      - VERBOSE=true # probably set this to false unless you're debugging or doing the initial demo
+    ports:
+      - 81:81
+      - 82:82
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      # if there's no incoming traffic on port 81, stop whoami1 
+      - "lazytainer.group.group1.pollRate=1"
+      - "lazytainer.group.group1.inactiveTimeout=30"
+      - "lazytainer.group.group1.ports=81"
+      - "lazytainer.group.group1.MINPACKETTHRESH=10"
+      - "lazytainer.group.group1.sleepMethod=stop" # can be either "stop" or "pause", or left blank for stop
+      - "lazytainer.group.group1.netInterface=ztukuxxqii" 
+
+  zerotier:
+    image: zyclonite/zerotier
+    container_name: zerotier
+    network_mode: "service:lazytainer"
+    devices:
+      - /dev/net/tun
+    volumes:
+      - './zt:/var/lib/zerotier-one'
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+
+  whoami1:
+    container_name: whoami1
+    image: containous/whoami
+    command: --port 81
+    network_mode: service:lazytainer
+    depends_on:
+      - lazytainer
+    labels:
+      - "lazytainer.group=group1"
+

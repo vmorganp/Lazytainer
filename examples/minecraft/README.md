@@ -2,7 +2,7 @@
 ## Startup
 ```
 git clone https://github.com/vmorganp/Lazytainer
-cd Lazytainer/minecraft_example
+cd Lazytainer/examples/minecraft
 docker-compose up 
 ```
 
