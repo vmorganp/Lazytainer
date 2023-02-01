@@ -2,8 +2,12 @@ version: "3"
 services:
   lazytainer:
     container_name: lazytainer
-    # image: ghcr.io/vmorganp/lazytainer:master
-    build: .
+    # to build the image yourself:
+    # 1. comment 'image:...'
+    # 2. uncomment 'build: .'
+    # 3. instead of 'docker compose up', run 'DOCKER_BUILDKIT=1 docker-compose up --build'
+    image: ghcr.io/vmorganp/lazytainer:master
+    # build: .
     environment:
       - VERBOSE=true # probably set this to false unless you're debugging or doing the initial demo
     ports:
