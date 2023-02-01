@@ -14,7 +14,7 @@ Monitors network traffic to containers. If there is traffic, the container runs,
     ```
 2. Start the stack
     ```sh
-    docker-compose up
+    DOCKER_BUILDKIT=1 docker-compose up --build
     ```
     This will create 2 containers that you can reach through a third "lazytainer" container
 3. View the running container by navigating to its web ui at `http://localhost:81`. You should see some information about the container
