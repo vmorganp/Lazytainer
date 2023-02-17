@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  satisfactory-server:
+    container_name: 'satisfactory'
+    image: 'wolveix/satisfactory-server:latest'
+    volumes:
+      - /your/game_files/satisfactory:/config # Path must be changed to your satisfactory save mount
+    environment:
+       - MAXPLAYERS=8
+       - PGID=1000
+       - PUID=1000
+       - STEAMBETA=false
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 20G
+        reservations:
+          memory: 16G
+    network_mode: service:lazytainer
+    labels:
+      - "lazytainer.group=satisfactory"
+    depends_on:
+      - lazytainer
+
+  lazytainer:
+    container_name: lazytainer
+    image: ghcr.io/vmorganp/lazytainer:master
+    environment:
+      - VERBOSE=true
+    ports:
+      - '15777:15777/udp' # This is the query port, supplies packets when the server browser is used.
+      - '7777:7777/udp' # This port handles the actual game traffic
+      - '15000:15000/udp' # This port handles outbound check-ins "beacon", etc.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "lazytainer.group.satisfactory.ports=15777,7777,15000"
+      - "lazytainer.group.satisfactory.inactiveTimeout=120" # A value of two minutes is safe on my hardware but this may need to be raised based on satisfactory container startup time on slower hardware
+      - "lazytainer.group.satisfactory.minPacketThreshold=500" 
+      - "lazytainer.group.satisfactory.pollRate=1"
+      - "lazytainer.group.satisfactory.sleepMethod=stop" # This is the default but important to reclaim memory with such high usage. Changing this to sleep may speed up reload times? 
