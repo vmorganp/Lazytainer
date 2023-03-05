@@ -24,7 +24,7 @@ type LazyGroup struct {
 	netInterface       string   // which network interface to watch traffic on. By default this is eth0 but can sometimes vary
 	pollRate           uint16   // how frequently to poll traffic statistics
 	ports              []uint16 // list of ports, which happens to also be a 16 bit range, how convenient!
-	stopMethod         string   // whether to stop or pause the container
+	sleepMethod         string   // whether to stop or pause the container
 }
 
 func (lg LazyGroup) MainLoop() {
@@ -85,13 +85,13 @@ func (lg LazyGroup) stopContainers() {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
 	for _, c := range lg.getContainers() {
-		if lg.stopMethod == "stop" || lg.stopMethod == "" {
+		if lg.sleepMethod == "stop" || lg.sleepMethod == "" {
 			if err := dockerClient.ContainerStop(context.Background(), c.ID, nil); err != nil {
 				fmt.Printf("ERROR: Unable to stop container %s: %s\n", c.Names[0], err)
 			} else {
 				infoLogger.Println("stopped container ", c.Names[0])
 			}
-		} else if lg.stopMethod == "pause" {
+		} else if lg.sleepMethod == "pause" {
 			if err := dockerClient.ContainerPause(context.Background(), c.ID); err != nil {
 				fmt.Printf("ERROR: Unable to pause container %s: %s\n", c.Names[0], err)
 			} else {
@@ -106,13 +106,13 @@ func (lg LazyGroup) startContainers() {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
 	for _, c := range lg.getContainers() {
-		if lg.stopMethod == "stop" || lg.stopMethod == "" {
+		if lg.sleepMethod == "stop" || lg.sleepMethod == "" {
 			if err := dockerClient.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}); err != nil {
 				fmt.Printf("ERROR: Unable to start container %s: %s\n", c.Names[0], err)
 			} else {
 				infoLogger.Println("started container ", c.Names[0])
 			}
-		} else if lg.stopMethod == "pause" {
+		} else if lg.sleepMethod == "pause" {
 			if err := dockerClient.ContainerUnpause(context.Background(), c.ID); err != nil {
 				fmt.Printf("ERROR: Unable to unpause container %s: %s\n", c.Names[0], err)
 			} else {

@@ -122,13 +122,13 @@ func configureFromLabels() map[string]LazyGroup {
 				debugLogger.Println("Using default pollRate of 30 because " + prefix + groupName + ".pollRate was not set")
 			}
 
-			// configure stopMethod
-			stopMethod := "stop"
-			labelValueAsString, exists = labels[prefix+groupName+".stopMethod"]
+			// configure sleepMethod
+			sleepMethod := "stop"
+			labelValueAsString, exists = labels[prefix+groupName+".sleepMethod"]
 			if exists {
-				stopMethod = labelValueAsString
+				sleepMethod = labelValueAsString
 			} else {
-				debugLogger.Println("Using default stopMethod of stop because " + prefix + groupName + ".stopMethod was not set")
+				debugLogger.Println("Using default sleepMethod of stop because " + prefix + groupName + ".sleepMethod was not set")
 			}
 
 			groups[groupName] = LazyGroup{
@@ -138,7 +138,7 @@ func configureFromLabels() map[string]LazyGroup {
 				netInterface:       netInterface,
 				pollRate:           pollRate,
 				ports:              ports,
-				stopMethod:         stopMethod,
+				sleepMethod:         sleepMethod,
 			}
 		}
 	}
