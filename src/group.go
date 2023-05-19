@@ -9,6 +9,7 @@ import (
 
 	"github.com/cakturk/go-netstat/netstat"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 
@@ -86,7 +87,7 @@ func (lg LazyGroup) stopContainers() {
 	check(err)
 	for _, c := range lg.getContainers() {
 		if lg.sleepMethod == "stop" || lg.sleepMethod == "" {
-			if err := dockerClient.ContainerStop(context.Background(), c.ID, nil); err != nil {
+			if err := dockerClient.ContainerStop(context.Background(), c.ID, container.StopOptions{}); err != nil {
 				fmt.Printf("ERROR: Unable to stop container %s: %s\n", c.Names[0], err)
 			} else {
 				infoLogger.Println("stopped container ", c.Names[0])
