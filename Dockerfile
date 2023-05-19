@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:latest
-FROM golang:1.18.9-alpine3.17 as build
+FROM golang:1.20.4-alpine3.17 as build
 RUN apk add --update build-base gcc wget git libpcap-dev
 WORKDIR /app
 COPY src/* /app/
@@ -12,3 +12,4 @@ FROM alpine
 RUN apk add --update libpcap-dev
 COPY --from=build /app/lazytainer /app/lazytainer
 ENTRYPOINT [ "./app/lazytainer" ]
+
