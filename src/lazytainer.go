@@ -138,7 +138,7 @@ func configureFromLabels() map[string]LazyGroup {
 				netInterface:       netInterface,
 				pollRate:           pollRate,
 				ports:              ports,
-				sleepMethod:         sleepMethod,
+				sleepMethod:        sleepMethod,
 			}
 		}
 	}

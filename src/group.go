@@ -25,7 +25,7 @@ type LazyGroup struct {
 	netInterface       string   // which network interface to watch traffic on. By default this is eth0 but can sometimes vary
 	pollRate           uint16   // how frequently to poll traffic statistics
 	ports              []uint16 // list of ports, which happens to also be a 16 bit range, how convenient!
-	sleepMethod         string   // whether to stop or pause the container
+	sleepMethod        string   // whether to stop or pause the container
 }
 
 func (lg LazyGroup) MainLoop() {
