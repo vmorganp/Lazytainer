@@ -48,6 +48,9 @@ func configureFromLabels() map[string]LazyGroup {
 	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	check(err)
 
+	//negotiate API version to prevent "client version is too new" error
+	dockerClient.NegotiateAPIVersion(context.Background())
+	
 	filter := filters.NewArgs(filters.Arg("id", container_id))
 	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
 	check(err)
