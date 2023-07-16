@@ -31,8 +31,10 @@ services:
   whoami1:
     container_name: whoami1
     image: containous/whoami
+    # ports:
+    #   - "81:81" # port should not be configured on this container since traffic is routed through lazytainer
     command: --port 81 # This is specific to containous/whoami
-    network_mode: service:lazytainer
+    network_mode: service:lazytainer # or `container:lazytainer` if lazytainer is not in this compose file
     depends_on:
       - lazytainer
     labels:
@@ -41,8 +43,10 @@ services:
   whoami2:
     container_name: whoami2
     image: containous/whoami
+    # ports:
+    #   - "82:82" # port should not be configured on this container since traffic is routed through lazytainer
     command: --port 82 # This is specific to containous/whoami
-    network_mode: service:lazytainer
+    network_mode: service:lazytainer # or `container:lazytainer` if lazytainer is not in this compose file
     depends_on:
       - lazytainer
     labels:
