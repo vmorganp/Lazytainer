@@ -11,8 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/client"
-
+	
 	"github.com/google/gopacket"
 	_ "github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
