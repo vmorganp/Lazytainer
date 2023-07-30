@@ -28,6 +28,8 @@ type LazyGroup struct {
 	sleepMethod        string   // whether to stop or pause the container
 }
 
+var err error
+
 func (lg LazyGroup) MainLoop() {
 	// rxPacketCount is continiously updated by the getRxPackets goroutine
 	var rxPacketCount int
@@ -72,9 +74,6 @@ func (lg LazyGroup) MainLoop() {
 }
 
 func (lg LazyGroup) getContainers() []types.Container {
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-	check(err)
-	dockerClient.NegotiateAPIVersion(context.Background())
 	filter := filters.NewArgs(filters.Arg("label", "lazytainer.group="+lg.groupName))
 	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
 	check(err)
@@ -84,9 +83,6 @@ func (lg LazyGroup) getContainers() []types.Container {
 
 func (lg LazyGroup) stopContainers() {
 	debugLogger.Println("stopping container(s)")
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-	check(err)
-	dockerClient.NegotiateAPIVersion(context.Background())
 	for _, c := range lg.getContainers() {
 		if lg.sleepMethod == "stop" || lg.sleepMethod == "" {
 			if err := dockerClient.ContainerStop(context.Background(), c.ID, container.StopOptions{}); err != nil {
@@ -106,9 +102,6 @@ func (lg LazyGroup) stopContainers() {
 
 func (lg LazyGroup) startContainers() {
 	debugLogger.Println("starting container(s)")
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
-	check(err)
-	dockerClient.NegotiateAPIVersion(context.Background())
 	for _, c := range lg.getContainers() {
 		if lg.sleepMethod == "stop" || lg.sleepMethod == "" {
 			if err := dockerClient.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}); err != nil {

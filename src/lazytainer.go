@@ -16,6 +16,7 @@ import (
 // log := logger()
 var infoLogger *log.Logger
 var debugLogger *log.Logger
+var dockerClient *client.Client
 
 func main() {
 	flags := log.LstdFlags | log.Lshortfile
@@ -45,7 +46,7 @@ func configureFromLabels() map[string]LazyGroup {
 	container_id, err := os.Hostname()
 	check(err)
 
-	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
+	dockerClient, err = client.NewClientWithOpts(client.FromEnv)
 	check(err)
 
 	//negotiate API version to prevent "client version is too new" error
