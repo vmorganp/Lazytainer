@@ -3,6 +3,10 @@ Putting your containers to sleep
 [![Docker](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml)
 ---
 
+
+https://github.com/vmorganp/Lazytainer/assets/31448722/91af5528-6fee-4837-b4d8-11c03e792e94
+
+
 ## Quick Explanation
 Monitors network traffic to containers. If there is traffic, the container runs, otherwise the container is stopped/paused. for more details check out the [Configuration](##Configuration) section.
 
