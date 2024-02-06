@@ -11,13 +11,13 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
-      # if there's no incoming traffic on port 81, stop whoami1 
+      # if there's no incoming traffic on port 81, stop whoami1
       - "lazytainer.group.group1.pollRate=1"
       - "lazytainer.group.group1.inactiveTimeout=30"
       - "lazytainer.group.group1.ports=81"
       - "lazytainer.group.group1.MINPACKETTHRESH=10"
       - "lazytainer.group.group1.sleepMethod=stop" # can be either "stop" or "pause", or left blank for stop
-      - "lazytainer.group.group1.netInterface=ztukuxxqii" 
+      - "lazytainer.group.group1.netInterface=ztukuxxqii"
 
   zerotier:
     image: zyclonite/zerotier
@@ -26,7 +26,7 @@ services:
     devices:
       - /dev/net/tun
     volumes:
-      - './zt:/var/lib/zerotier-one'
+      - "./zt:/var/lib/zerotier-one"
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
@@ -40,4 +40,3 @@ services:
       - lazytainer
     labels:
       - "lazytainer.group=group1"
-

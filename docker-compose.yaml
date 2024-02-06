@@ -17,7 +17,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
       # this configuration will cause traffic to whoami1 to start whoami2, but traffic to only whoami2 will not wake whoami1
-      # if there's no incoming traffic on port 81, pause whoami1 
+      # if there's no incoming traffic on port 81, pause whoami1
       - "lazytainer.group.group1.pollRate=1"
       - "lazytainer.group.group1.inactiveTimeout=10"
       - "lazytainer.group.group1.ports=81"
