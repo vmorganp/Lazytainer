@@ -73,14 +73,14 @@ lazytainer:
 
 Group properties that can be changed include:
 
-| Name               | description                                                                            | required | default |
-| ------------------ | -------------------------------------------------------------------------------------- | -------- | ------- |
-| ports              | Network ports associated with a group, can be comma separated                          | Yes      | n/a     |
-| inactiveTimeout    | Time (seconds) before container is stopped when there is insufficient network activity | No       | 30      |
-| minPacketThreshold | Minimum count of network packets for container to be on                                | No       | 30      |
-| pollRate           | How frequently (seconds) to check network activity                                     | No       | 30      |
-| sleepMethod        | How to put the container to sleep. Can be `stop` or `pause`                            | No       | `stop`  |
-| netInterface       | Network interface to listen on                                                         | No       | `eth0`  |
+| Name               | description                                                                                                                                                                                        | required | default |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------- |
+| ports              | Network ports associated with a group, can be comma separated. Should be the INTERNAL port, not the EXPOSED port. ex: service running on `8080` but exposed on `80` should have port set to `8080` | Yes      | n/a     |
+| inactiveTimeout    | Time (seconds) before container is stopped when there is insufficient network activity                                                                                                             | No       | 30      |
+| minPacketThreshold | Minimum count of network packets for container to be on                                                                                                                                            | No       | 30      |
+| pollRate           | How frequently (seconds) to check network activity                                                                                                                                                 | No       | 30      |
+| sleepMethod        | How to put the container to sleep. Can be `stop` or `pause`                                                                                                                                        | No       | `stop`  |
+| netInterface       | Network interface to listen on                                                                                                                                                                     | No       | `eth0`  |
 
 ### Additional Configuration
 
