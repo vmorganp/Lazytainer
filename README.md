@@ -20,7 +20,7 @@ Monitors network traffic to containers. If there is traffic, the container runs,
    ```
 2. Start the stack
    ```sh
-   if "docker compose" doesn't work, try "docker-compose"
+   # if "docker compose" doesn't work, try "docker-compose"
    docker compose up
    ```
    This will create 2 containers that you can reach through a third "lazytainer" container
