@@ -1,10 +1,8 @@
-name: Docker Build and Publish
+name: Docker Release Tag
 
 on:
   push:
-    branches: [master]
-  pull_request:
-    branches: [master]
+    tags: ["v*.*.*"]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -22,9 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -37,26 +32,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=sha
+      - name: Extract tag from release name
+        id: extract_tag
+        run: |
+          echo "tag=$(echo ${{ github.event.release.tag_name }} | sed 's/^v//')" >> $GITHUB_OUTPUT
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: true
+      - name: Tag and Push Image
+        run: |
+          env
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.extract_tag.outputs.tag }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.extract_tag.outputs.tag }}
