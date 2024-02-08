@@ -37,7 +37,7 @@ jobs:
 
       - name: Tag and Push Image
         run: |
-          export IMAGE_NAME=$(echo "$IMAGE_NAME" | awk 'print tolower($0)')
+          export IMAGE_NAME=$(echo "$IMAGE_NAME" | awk '{print tolower($0)}')
           echo $IMAGE_NAME
           env
           echo ${{ env.REGISTRY }}/$IMAGE_NAME:master
