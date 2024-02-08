@@ -38,6 +38,7 @@ jobs:
       - name: Tag and Push Image
         run: |
           env
+          export IMAGE_NAME=$(echo "$IMAGE_NAME" | tr '[:lower:]')
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.extract_tag.outputs.tag }}
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.extract_tag.outputs.tag }}
