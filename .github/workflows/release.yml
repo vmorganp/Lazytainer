@@ -33,7 +33,7 @@ jobs:
       - name: Extract tag from release name
         id: extract_tag
         run: |
-          echo "tag=$(echo ${{ github.event.release.tag_name }} | sed 's/^v//')" >> $GITHUB_OUTPUT
+          echo "tag=$(echo $GITHUB_REF | sed 's|refs/tags/v||')" >> $GITHUB_OUTPUT
 
       - name: Tag and Push Image
         run: |
