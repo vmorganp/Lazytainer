@@ -30,12 +30,12 @@ type LazyGroup struct {
 var err error
 
 func (lg LazyGroup) MainLoop() {
-	// rxPacketCount is continiously updated by the getRxPackets goroutine
+	// rxPacketCount is continuously updated by the getRxPackets goroutine
 	var rxPacketCount int
 	go lg.getRxPackets(&rxPacketCount)
 
 	inactiveSeconds := 0
-	// initialize a slice to keep track of recnt network traffic
+	// initialize a slice to keep track of recent network traffic
 	rxHistory := make([]int, int(math.Ceil(float64(lg.inactiveTimeout/lg.pollRate))))
 	sleepTime := time.Duration(lg.pollRate) * time.Second
 	for {
@@ -140,7 +140,7 @@ func (lg LazyGroup) getRxPackets(packetCount *int) {
 		// At some point this wraps around I think.
 		// I have no idea when that point is or what the consequences of letting it happen are so I'm forcing it to be 1m
 		*packetCount = (*packetCount + 1) % 1000000
-		debugLogger.Println("group", lg.groupName, "recieved", *packetCount, "packets")
+		debugLogger.Println("group", lg.groupName, "received", *packetCount, "packets")
 	}
 }
 
