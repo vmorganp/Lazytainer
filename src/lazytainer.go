@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
@@ -26,7 +26,7 @@ func main() {
 	// if the verbose flag isn't set to true, don't log debug logs
 	verbose, verboseFlagSet := os.LookupEnv("VERBOSE")
 	if !verboseFlagSet || strings.ToLower(verbose) != "true" {
-		debugLogger.SetOutput(ioutil.Discard)
+		debugLogger.SetOutput(io.Discard)
 	}
 
 	// configure groups. eventually it might be nice to have file based config as well.
@@ -53,7 +53,7 @@ func configureFromLabels() map[string]LazyGroup {
 	dockerClient.NegotiateAPIVersion(context.Background())
 
 	filter := filters.NewArgs(filters.Arg("id", container_id))
-	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
+	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{All: true, Filters: filter})
 	check(err)
 
 	groups := make(map[string]LazyGroup)

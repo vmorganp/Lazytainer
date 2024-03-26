@@ -74,7 +74,7 @@ func (lg LazyGroup) MainLoop() {
 
 func (lg LazyGroup) getContainers() []types.Container {
 	filter := filters.NewArgs(filters.Arg("label", "lazytainer.group="+lg.groupName))
-	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filter})
+	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{All: true, Filters: filter})
 	check(err)
 
 	return containers
@@ -103,7 +103,7 @@ func (lg LazyGroup) startContainers() {
 	debugLogger.Println("starting container(s)")
 	for _, c := range lg.getContainers() {
 		if lg.sleepMethod == "stop" || lg.sleepMethod == "" {
-			if err := dockerClient.ContainerStart(context.Background(), c.ID, types.ContainerStartOptions{}); err != nil {
+			if err := dockerClient.ContainerStart(context.Background(), c.ID, container.StartOptions{}); err != nil {
 				fmt.Printf("ERROR: Unable to start container %s: %s\n", c.Names[0], err)
 			} else {
 				infoLogger.Println("started container ", c.Names[0])
