@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:latest
-FROM golang:1.22.1-alpine3.19 as build
+FROM golang:1.22.2-alpine3.19 as build
 RUN apk add --update build-base gcc wget git libpcap-dev
 WORKDIR /app
 COPY src/* /app/
