@@ -1,7 +1,7 @@
 # Lazytainer - Lazy Load Containers
 
 Putting your containers to sleep
-[![Docker](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/vmorganp/Lazytainer/actions/workflows/docker-publish.yml)
+[![Docker Release](https://github.com/vmorganp/Lazytainer/actions/workflows/release.yml/badge.svg)](https://github.com/vmorganp/Lazytainer/actions/workflows/release.yml)
 
 ---
 
