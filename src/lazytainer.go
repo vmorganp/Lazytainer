@@ -106,6 +106,15 @@ func configureFromLabels() map[string]LazyGroup {
 				debugLogger.Println("Using default threshold of 30 because " + prefix + groupName + ".minPacketThreshold was not set")
 			}
 
+			// configure ignoreActiveClients
+			ignoreActiveClients := false;
+			labelValueAsString, exists = labels[prefix+groupName+".ignoreActiveClients"]
+			if exists {
+				netInterface = labelValueAsString
+			} else {
+				debugLogger.Println("Using default ignoreActiveClients of false " + prefix + groupName + ".ignoreActiveClients was not set")
+			}
+
 			// configure netInterface
 			netInterface := "eth0"
 			labelValueAsString, exists = labels[prefix+groupName+".netInterface"]
@@ -139,6 +148,7 @@ func configureFromLabels() map[string]LazyGroup {
 				groupName:          groupName,
 				inactiveTimeout:    inactiveTimeout,
 				minPacketThreshold: minPacketThreshold,
+				ignoreActiveClients: ignoreActiveClients,
 				netInterface:       netInterface,
 				pollRate:           pollRate,
 				ports:              ports,

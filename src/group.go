@@ -21,6 +21,7 @@ type LazyGroup struct {
 	groupName          string   // the docker label associated with this group
 	inactiveTimeout    uint16   // how many seconds of inactivity before group turns off
 	minPacketThreshold uint16   // minimum network traffic in packets before stop/pause occurs
+	ignoreActiveClients bool    // Ignore connected clients (If user active, he should send requests)
 	netInterface       string   // which network interface to watch traffic on. By default this is eth0 but can sometimes vary
 	pollRate           uint16   // how frequently to poll traffic statistics
 	ports              []uint16 // list of ports, which happens to also be a 16 bit range, how convenient!
@@ -48,7 +49,7 @@ func (lg LazyGroup) MainLoop() {
 		if lg.isGroupOn() {
 			debugLogger.Println(rxHistory[len(rxHistory)-1]-rxHistory[0], "packets received in the last", lg.inactiveTimeout, "seconds")
 			// if no clients are active on ports and threshold packets haven't been received in TIMEOUT secs
-			if lg.getActiveClients() == 0 && rxHistory[0]+int(lg.minPacketThreshold) > rxHistory[len(rxHistory)-1] {
+			if (lg.ignoreActiveClients || lg.getActiveClients() == 0) && rxHistory[0]+int(lg.minPacketThreshold) > rxHistory[len(rxHistory)-1] {
 				// count up if no active clients
 				inactiveSeconds = inactiveSeconds + int(lg.pollRate)
 				fmt.Println(inactiveSeconds, "/", lg.inactiveTimeout, "seconds without an active client or sufficient traffic on running container")
