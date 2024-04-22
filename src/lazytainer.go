@@ -110,7 +110,9 @@ func configureFromLabels() map[string]LazyGroup {
 			ignoreActiveClients := false;
 			labelValueAsString, exists = labels[prefix+groupName+".ignoreActiveClients"]
 			if exists {
-				netInterface = labelValueAsString
+				val, err := strconv.ParseBool(labelValueAsString)
+				check(err)
+				ignoreActiveClients = val
 			} else {
 				debugLogger.Println("Using default ignoreActiveClients of false " + prefix + groupName + ".ignoreActiveClients was not set")
 			}
