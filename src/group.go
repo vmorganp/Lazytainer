@@ -18,14 +18,14 @@ import (
 )
 
 type LazyGroup struct {
-	groupName          string   // the docker label associated with this group
-	inactiveTimeout    uint16   // how many seconds of inactivity before group turns off
-	minPacketThreshold uint16   // minimum network traffic in packets before stop/pause occurs
-	ignoreActiveClients bool    // Ignore connected clients (If user active, he should send requests)
-	netInterface       string   // which network interface to watch traffic on. By default this is eth0 but can sometimes vary
-	pollRate           uint16   // how frequently to poll traffic statistics
-	ports              []uint16 // list of ports, which happens to also be a 16 bit range, how convenient!
-	sleepMethod        string   // whether to stop or pause the container
+	groupName           string   // the docker label associated with this group
+	inactiveTimeout     uint16   // how many seconds of inactivity before group turns off
+	minPacketThreshold  uint16   // minimum network traffic in packets before stop/pause occurs
+	ignoreActiveClients bool     // determine container activity based on only packet count, ignoring connected client count.
+	netInterface        string   // which network interface to watch traffic on. By default this is eth0 but can sometimes vary
+	pollRate            uint16   // how frequently to poll traffic statistics
+	ports               []uint16 // list of ports, which happens to also be a 16 bit range, how convenient!
+	sleepMethod         string   // whether to stop or pause the container
 }
 
 var err error

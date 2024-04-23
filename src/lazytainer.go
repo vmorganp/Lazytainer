@@ -107,17 +107,17 @@ func configureFromLabels() map[string]LazyGroup {
 			}
 
 			// configure ignoreActiveClients
-			ignoreActiveClients := false;
+			ignoreActiveClients := false
 			labelValueAsString, exists = labels[prefix+groupName+".ignoreActiveClients"]
 			if exists {
 				val, err := strconv.ParseBool(labelValueAsString)
 				check(err)
 				ignoreActiveClients = val
 			} else {
-				debugLogger.Println("Using default ignoreActiveClients of false " + prefix + groupName + ".ignoreActiveClients was not set")
+				debugLogger.Println("Using default ignoreActiveClients of false because " + prefix + groupName + ".ignoreActiveClients was not set")
 			}
 
-			// configure netInterface 
+			// configure netInterface
 			netInterface := "eth0"
 			labelValueAsString, exists = labels[prefix+groupName+".netInterface"]
 			if exists {
@@ -147,14 +147,14 @@ func configureFromLabels() map[string]LazyGroup {
 			}
 
 			groups[groupName] = LazyGroup{
-				groupName:          groupName,
-				inactiveTimeout:    inactiveTimeout,
-				minPacketThreshold: minPacketThreshold,
+				groupName:           groupName,
+				inactiveTimeout:     inactiveTimeout,
+				minPacketThreshold:  minPacketThreshold,
 				ignoreActiveClients: ignoreActiveClients,
-				netInterface:       netInterface,
-				pollRate:           pollRate,
-				ports:              ports,
-				sleepMethod:        sleepMethod,
+				netInterface:        netInterface,
+				pollRate:            pollRate,
+				ports:               ports,
+				sleepMethod:         sleepMethod,
 			}
 		}
 	}
