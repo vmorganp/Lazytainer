@@ -139,8 +139,8 @@ func (lg LazyGroup) getRxPackets(packetCount *int) {
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	for range packetSource.Packets() {
 		// At some point this wraps around I think.
-		// I have no idea when that point is or what the consequences of letting it happen are so I'm forcing it to be 1m
-		*packetCount = (*packetCount + 1) % 1000000
+		// I have no idea when that point is or what the consequences of letting it happen are so I'm forcing it to be 10k
+		*packetCount = (*packetCount + 1) % 10000
 		debugLogger.Println("group", lg.groupName, "received", *packetCount, "packets")
 	}
 }
