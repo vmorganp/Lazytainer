@@ -150,7 +150,7 @@ func (lg LazyGroup) getActiveClients() int {
 	var allSocks []netstat.SockTabEntry
 
 	// ipv4
-	if ipv6Enabled {
+	if ipv4Enabled {
 		udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
 		check(err)
 		allSocks = append(allSocks, udpSocks...)
