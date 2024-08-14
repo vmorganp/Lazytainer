@@ -17,6 +17,8 @@ import (
 var infoLogger *log.Logger
 var debugLogger *log.Logger
 var dockerClient *client.Client
+var ipv6Enabled bool
+var ipv4Enabled bool
 
 func main() {
 	flags := log.LstdFlags | log.Lshortfile
@@ -27,6 +29,22 @@ func main() {
 	verbose, verboseFlagSet := os.LookupEnv("VERBOSE")
 	if !verboseFlagSet || strings.ToLower(verbose) != "true" {
 		debugLogger.SetOutput(io.Discard)
+	}
+
+	// if the IPV6_DISABLED flag isn't set to true, leave ipv6 enabled
+	envIpv6, existsEnvDisableIpv6 := os.LookupEnv("IPV6_DISABLED")
+	if existsEnvDisableIpv6 && strings.ToLower(envIpv6) != "true" {
+		ipv6Enabled = true
+	} else {
+		ipv6Enabled = false
+	}
+
+	// if the IPV4_DISABLED flag isn't set to true, leave ipv4 enabled
+	envIpv4, existsEnvDisableIpv4 := os.LookupEnv("IPV4_DISABLED")
+	if existsEnvDisableIpv4 && strings.ToLower(envIpv4) != "true" {
+		ipv4Enabled = true
+	} else {
+		ipv4Enabled = false
 	}
 
 	// configure groups. eventually it might be nice to have file based config as well.

@@ -87,13 +87,25 @@ Group properties that can be changed include:
 
 #### Verbose Logging
 
-If you would like more verbose logging, you can apply the environment variable `VERBOSE=true` to lazytainer like so
+For more verbose logging, you can apply the environment variable `VERBOSE=true` to lazytainer:
 
 ```yaml
 lazytainer:
   # ... configuration omitted for brevity
   environment:
     - VERBOSE=true
+```
+
+#### ipv4/ipv6 toggles
+
+To disable ipv4 or ipv6, pass environment variables:
+
+```yaml
+lazytainer:
+  # ... configuration omitted for brevity
+  environment:
+    - IPV6_DISABLED=true
+    - IPV4_DISABLED=true
 ```
 
 #### Volumes

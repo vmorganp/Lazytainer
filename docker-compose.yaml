@@ -10,6 +10,8 @@ services:
     # build: .
     environment:
       - VERBOSE=true # probably set this to false unless you're debugging or doing the initial demo
+      - IPV4_DISABLED=false
+      - IPV6_DISABLED=false
     ports:
       - 81:81
       - 82:82

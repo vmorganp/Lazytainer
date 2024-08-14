@@ -148,17 +148,29 @@ func (lg LazyGroup) getRxPackets(packetCount *int) {
 func (lg LazyGroup) getActiveClients() int {
 	// get active clients
 	var allSocks []netstat.SockTabEntry
-	udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
-	check(err)
-	udp6Socks, err := netstat.UDP6Socks(netstat.NoopFilter)
-	check(err)
-	tcpSocks, err := netstat.TCPSocks(netstat.NoopFilter)
-	check(err)
-	tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
-	check(err)
+
+	// ipv4
+	if ipv6Enabled {
+		udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
+		check(err)
+		allSocks = append(allSocks, udpSocks...)
+		tcpSocks, err := netstat.TCPSocks(netstat.NoopFilter)
+		check(err)
+		allSocks = append(allSocks, tcpSocks...)
+	}
+
+	// ipv6
+	if ipv6Enabled {
+		udp6Socks, err := netstat.UDP6Socks(netstat.NoopFilter)
+		check(err)
+		allSocks = append(allSocks, udp6Socks...)
+		tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
+		check(err)
+		allSocks = append(allSocks, tcp6Socks...)
+	}
 
 	activeClients := 0
-	for _, socketEntry := range append(append(append(append(allSocks, udp6Socks...), tcp6Socks...), tcpSocks...), udpSocks...) {
+	for _, socketEntry := range allSocks {
 		if socketEntry.State.String() == "ESTABLISHED" {
 			for _, aPort := range lg.ports {
 				if strconv.FormatUint(uint64(aPort), 10) == fmt.Sprintf("%v", socketEntry.LocalAddr.Port) {
