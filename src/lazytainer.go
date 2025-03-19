@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
@@ -24,6 +23,7 @@ func main() {
 	flags := log.LstdFlags | log.Lshortfile
 	infoLogger = log.New(os.Stdout, "INFO: ", flags)
 	debugLogger = log.New(os.Stdout, "DEBUG: ", flags)
+	debugLogger.Println("Starting Lazytainer")
 
 	// if the verbose flag isn't set to true, don't log debug logs
 	verbose, verboseFlagSet := os.LookupEnv("VERBOSE")
@@ -58,9 +58,6 @@ func main() {
 }
 
 func configureFromLabels() map[string]LazyGroup {
-	// theoretically this could create an issue if people manually hostname their lazytainer instances the same
-	// for now the solution is "don't do that"
-	// we could do something clever to get around this, but not right now.
 	container_id, err := os.Hostname()
 	check(err)
 
@@ -70,12 +67,36 @@ func configureFromLabels() map[string]LazyGroup {
 	//negotiate API version to prevent "client version is too new" error
 	dockerClient.NegotiateAPIVersion(context.Background())
 
-	filter := filters.NewArgs(filters.Arg("id", container_id))
-	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{All: true, Filters: filter})
+	containers, err := dockerClient.ContainerList(context.Background(), container.ListOptions{All: true})
 	check(err)
 
+	// Figure out which container we are currently running in
+	var thisLazytainer container.Summary
+	for c := range containers {
+		thisContainer := containers[c]
+		// Only further investigate those which are running lazytainer
+		if containers[c].Command != "./app/lazytainer" {
+			continue
+		}
+
+		if strings.HasPrefix(thisContainer.ID, container_id) {
+			// if the hostname matches, that's the one
+			thisLazytainer = thisContainer
+			break
+		} else if strings.HasPrefix(thisContainer.HostConfig.NetworkMode, "container:"+container_id) {
+			// otherwise, if the network mode matches the hostname, that's the one
+			thisLazytainer = thisContainer
+			break
+		}
+	}
+
+	// this should never happen
+	if thisLazytainer.ID == "" {
+		panic("Could not determine container ID of lazytainer")
+	}
+
 	groups := make(map[string]LazyGroup)
-	labels := containers[0].Labels
+	labels := thisLazytainer.Labels
 
 	// iterate through labels, building out config for each group
 	prefix := "lazytainer.group."
